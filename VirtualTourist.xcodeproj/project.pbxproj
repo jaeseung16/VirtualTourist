@@ -14,6 +14,7 @@
 		0B92D3051FBE24C20028ED9E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0B92D3031FBE24C20028ED9E /* LaunchScreen.storyboard */; };
 		0B92D3101FBE24C20028ED9E /* VirtualTouristTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B92D30F1FBE24C20028ED9E /* VirtualTouristTests.swift */; };
 		0B92D31B1FBE24C20028ED9E /* VirtualTouristUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B92D31A1FBE24C20028ED9E /* VirtualTouristUITests.swift */; };
+		0B92D3291FBE26890028ED9E /* VTMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B92D3281FBE26890028ED9E /* VTMapViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +48,7 @@
 		0B92D3161FBE24C20028ED9E /* VirtualTouristUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VirtualTouristUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B92D31A1FBE24C20028ED9E /* VirtualTouristUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualTouristUITests.swift; sourceTree = "<group>"; };
 		0B92D31C1FBE24C20028ED9E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0B92D3281FBE26890028ED9E /* VTMapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VTMapViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 			children = (
 				0B92D2FA1FBE24C20028ED9E /* AppDelegate.swift */,
 				0B92D2FC1FBE24C20028ED9E /* ViewController.swift */,
+				0B92D3281FBE26890028ED9E /* VTMapViewController.swift */,
 				0B92D2FE1FBE24C20028ED9E /* Main.storyboard */,
 				0B92D3011FBE24C20028ED9E /* Assets.xcassets */,
 				0B92D3031FBE24C20028ED9E /* LaunchScreen.storyboard */,
@@ -259,6 +262,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B92D3291FBE26890028ED9E /* VTMapViewController.swift in Sources */,
 				0B92D2FD1FBE24C20028ED9E /* ViewController.swift in Sources */,
 				0B92D2FB1FBE24C20028ED9E /* AppDelegate.swift in Sources */,
 			);
