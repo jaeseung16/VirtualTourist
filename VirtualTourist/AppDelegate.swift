@@ -50,10 +50,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 extension AppDelegate {
     func checkIfFirstLaunch() {
-        guard let _ = UserDefaults.standard.object(forKey: "HasLaunchedBefore") as? Bool else {
+        if UserDefaults.standard.bool(forKey: "HasLaunchedBefore") {
+            print("Not First Launch")
+        } else {
             UserDefaults.standard.set(true, forKey: "HasLaunchedBefore")
             UserDefaults.standard.synchronize()
-            return
         }
     }
 }

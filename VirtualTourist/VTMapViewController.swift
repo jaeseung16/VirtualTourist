@@ -18,6 +18,18 @@ class VTMapViewController: UIViewController {
 
         // Do any additional setup after loading the view.
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+
+        if let region = UserDefaults.standard.object(forKey: "Region") as? [Double] {
+            mapView.setVisibleMapRect(MKMapRectMake(region[0], region[1], region[3], region[2]), animated: true)
+        } else {
+            let origin = mapView.visibleMapRect.origin
+            let size = mapView.visibleMapRect.size
+            let region = [origin.x, origin.y, size.height, size.width]
+            UserDefaults.standard.set(region, forKey: "Region")
+        }
+    }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -50,5 +62,10 @@ class VTMapViewController: UIViewController {
 
 // MARK: - MKMapViewDelegate
 extension VTMapViewController: MKMapViewDelegate {
-    
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        let origin = mapView.visibleMapRect.origin
+        let size = mapView.visibleMapRect.size
+        let region = [origin.x, origin.y, size.height, size.width]
+        UserDefaults.standard.set(region, forKey: "Region")
+    }
 }
