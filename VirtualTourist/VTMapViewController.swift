@@ -20,14 +20,10 @@ class VTMapViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-
-        if let region = UserDefaults.standard.object(forKey: "Region") as? [Double] {
-            mapView.setVisibleMapRect(MKMapRectMake(region[0], region[1], region[3], region[2]), animated: true)
+        if let region = UserDefaults.standard.object(forKey: "Region") as? [String: Double] {
+            loadRegion(region)
         } else {
-            let origin = mapView.visibleMapRect.origin
-            let size = mapView.visibleMapRect.size
-            let region = [origin.x, origin.y, size.height, size.width]
-            UserDefaults.standard.set(region, forKey: "Region")
+            saveRegion()
         }
     }
 
@@ -58,14 +54,23 @@ class VTMapViewController: UIViewController {
         
         print("\(location), \(coordinate)")
     }
+    
+    func loadRegion(_ region: [String: Double]) {
+        mapView.setVisibleMapRect(MKMapRectMake(region["x"]!, region["y"]!, region["width"]!, region["height"]!), animated: true)
+    }
+    
+    func saveRegion() {
+        let origin = mapView.visibleMapRect.origin
+        let size = mapView.visibleMapRect.size
+        let region = ["x": origin.x, "y": origin.y, "width": size.width, "height": size.height]
+        UserDefaults.standard.set(region, forKey: "Region")
+        UserDefaults.standard.synchronize()
+    }
 }
 
 // MARK: - MKMapViewDelegate
 extension VTMapViewController: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        let origin = mapView.visibleMapRect.origin
-        let size = mapView.visibleMapRect.size
-        let region = [origin.x, origin.y, size.height, size.width]
-        UserDefaults.standard.set(region, forKey: "Region")
+        saveRegion()
     }
 }
