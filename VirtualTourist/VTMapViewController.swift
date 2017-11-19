@@ -45,7 +45,7 @@ class VTMapViewController: UIViewController {
 
     @IBAction func addPin(_ sender: UILongPressGestureRecognizer) {
         let location = sender.location(in: mapView)
-        let coordinate = mapView.convert(location,toCoordinateFrom: mapView)
+        let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
         
         // Add annotation:
         let annotation = MKPointAnnotation()
@@ -72,5 +72,21 @@ class VTMapViewController: UIViewController {
 extension VTMapViewController: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         saveRegion()
+    }
+    
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        var albumViewController: VTAlbumViewController
+        
+        albumViewController = self.storyboard?.instantiateViewController(withIdentifier: "albumViewController") as! VTAlbumViewController
+        
+        guard let annotation = view.annotation else {
+            print("No annotation")
+            return
+        }
+        
+        print("\(annotation)")
+        albumViewController.annotation = annotation as MKAnnotation
+        
+        present(albumViewController, animated: true)
     }
 }
