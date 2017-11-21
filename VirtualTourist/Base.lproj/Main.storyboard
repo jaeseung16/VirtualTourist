@@ -82,29 +82,47 @@
                                     <barButtonItem title="Item" id="KGb-yF-EHo"/>
                                 </items>
                             </toolbar>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="84p-NR-x8p">
+                                <rect key="frame" x="0.0" y="64" width="375" height="140"/>
+                            </mapView>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="AiA-VI-KCN">
                                 <rect key="frame" x="0.0" y="204" width="375" height="419"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="7ui-9q-gMx">
-                                    <size key="itemSize" width="50" height="50"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="5" minimumInteritemSpacing="5" id="VUd-99-om6">
+                                    <size key="itemSize" width="75" height="75"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
                                     <size key="footerReferenceSize" width="0.0" height="0.0"/>
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 </collectionViewFlowLayout>
                                 <cells>
-                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="photoImage" id="XwP-ba-RPO">
-                                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" reuseIdentifier="photoImage" id="yxa-vb-egO" customClass="VTPhotoCollectionViewCell" customModule="VirtualTourist" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="0.0" width="75" height="75"/>
+                                        <autoresizingMask key="autoresizingMask"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
-                                            <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="75" height="75"/>
                                             <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="nKV-xg-hgH">
+                                                    <rect key="frame" x="0.0" y="0.0" width="75" height="75"/>
+                                                </imageView>
+                                            </subviews>
                                         </view>
+                                        <constraints>
+                                            <constraint firstItem="nKV-xg-hgH" firstAttribute="top" secondItem="yxa-vb-egO" secondAttribute="top" id="36x-gT-DIf"/>
+                                            <constraint firstItem="nKV-xg-hgH" firstAttribute="leading" secondItem="yxa-vb-egO" secondAttribute="leading" id="Rff-dB-xF2"/>
+                                            <constraint firstAttribute="trailing" secondItem="nKV-xg-hgH" secondAttribute="trailing" id="Rg4-Ph-vJe"/>
+                                            <constraint firstAttribute="bottom" secondItem="nKV-xg-hgH" secondAttribute="bottom" id="UiJ-UA-R0t"/>
+                                        </constraints>
+                                        <connections>
+                                            <outlet property="imageView" destination="nKV-xg-hgH" id="qUx-RU-6jB"/>
+                                        </connections>
                                     </collectionViewCell>
                                 </cells>
+                                <connections>
+                                    <outlet property="dataSource" destination="s8d-SQ-rN6" id="og5-Rg-ZWd"/>
+                                    <outlet property="delegate" destination="s8d-SQ-rN6" id="ReK-SD-5VZ"/>
+                                </connections>
                             </collectionView>
-                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="84p-NR-x8p">
-                                <rect key="frame" x="0.0" y="64" width="375" height="140"/>
-                            </mapView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
@@ -127,6 +145,7 @@
                     </view>
                     <connections>
                         <outlet property="mapView" destination="84p-NR-x8p" id="Cjq-JT-17i"/>
+                        <outlet property="photosCollectionView" destination="AiA-VI-KCN" id="SmU-IW-CH8"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sBM-yw-Q4e" userLabel="First Responder" sceneMemberID="firstResponder"/>

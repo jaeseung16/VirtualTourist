@@ -11,8 +11,10 @@ import MapKit
 
 class VTAlbumViewController: UIViewController {
 
+    @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var mapView: MKMapView!
     var annotation: MKAnnotation!
+    var photos = [UIImage]()
     
     let keyForFlickerAPI = "1a9583d866ddba940dde065c1528f782"
     let secretForFlickerAPI = "17170ad252ace78c"
@@ -24,7 +26,7 @@ class VTAlbumViewController: UIViewController {
 
         mapView.addAnnotation(annotation)
         mapView.setCenter(annotation.coordinate, animated: true)
-        
+        print("\(photos.count)")
         searchForPhotos()
     }
 
@@ -59,8 +61,8 @@ class VTAlbumViewController: UIViewController {
         let queryAPIKey = URLQueryItem(name: "api_key", value: keyForFlickerAPI)
         let queryFormat = URLQueryItem(name: "format", value: "json")
         let queryAdditionalItem = URLQueryItem(name: "nojsoncallback", value: "1")
-        let queryLongitude = URLQueryItem(name: "lon", value: "40")
-        let queryLatitude = URLQueryItem(name: "lat", value: "40")
+        let queryLongitude = URLQueryItem(name: "lon", value: "\(annotation.coordinate.longitude)")
+        let queryLatitude = URLQueryItem(name: "lat", value: "\(annotation.coordinate.latitude)")
         let queryExtras = URLQueryItem(name: "extras", value: "url_m")
         
         component.queryItems!.append(queryMethod)
@@ -100,7 +102,33 @@ class VTAlbumViewController: UIViewController {
                 return
             }
             
-            print(parsedResult)
+            guard let photosDictionary = parsedResult["photos"] as? [String: AnyObject] else {
+                print("Cannot find \"photos\" key in \(parsedResult).")
+                return
+            }
+            
+            guard let photosArray = photosDictionary["photo"] as? [ [String: AnyObject] ] else {
+                print("Cannot find photos in \(photosDictionary).")
+                return
+            }
+            
+            for photo in photosArray {
+                guard let imageURLString = photo["url_m"] as? String else {
+                    break
+                }
+                
+                let imageURL = URL(string: imageURLString)
+                if let imageData = try? Data(contentsOf: imageURL!) {
+                    DispatchQueue.main.async {
+                        self.photos.append(UIImage(data: imageData)!)
+                        let index = IndexPath(item: self.photos.count - 1, section: 0)
+                        self.photosCollectionView.insertItems(at: [index])
+                    }
+                } else {
+                    print("Image does not exist at \(imageURL)")
+                }
+                
+            }
         }
         
         task.resume()
@@ -112,3 +140,31 @@ extension VTAlbumViewController: MKMapViewDelegate {
 
 }
 
+extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        //print("section: \(section)")
+        //print("photos.count: \(photos.count)")
+        return photos.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        //print("\(collectionView)")
+        /*
+        if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoImage", for: indexPath) as? VTPhotoCollectionViewCell {
+            print("okay")
+            return cell
+        } else {
+            print("bad")
+            return UICollectionViewCell()
+        }
+        */
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoImage", for: indexPath) as! VTPhotoCollectionViewCell
+        
+        print("\(photos[indexPath.item])")
+        
+        cell.imageView.image = photos[indexPath.item]
+       
+        return cell
+    }
+}
