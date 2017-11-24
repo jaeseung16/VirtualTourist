@@ -12,5 +12,5 @@ import CoreData
 
 
 public class Pin: NSManagedObject {
-
+    
 }
