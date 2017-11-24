@@ -8,15 +8,30 @@
 
 import UIKit
 import MapKit
+import CoreData
 
-class VTMapViewController: UIViewController {
+class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
+    
+    var pins = [Pin]()
+    
+    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        // Get the stack
+        let delegate = UIApplication.shared.delegate as! AppDelegate
+        let stack = delegate.stack
+        
+        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
+        fr.sortDescriptors = []
+        
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: (stack?.context)!, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController?.delegate = self
+        search()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -32,7 +47,10 @@ class VTMapViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+    
     /*
     // MARK: - Navigation
 
@@ -88,5 +106,19 @@ extension VTMapViewController: MKMapViewDelegate {
         albumViewController.annotation = annotation as MKAnnotation
         
         present(albumViewController, animated: true)
+    }
+}
+
+// MARK: - CoreData, Fetches
+
+extension VTMapViewController {
+    func search() {
+        if let fc = fetchedResultsController {
+            do {
+                try fc.performFetch()
+            } catch let error as NSError {
+                print("Error while trying to perform a search: \n\(error)\n\(String(describing: fetchedResultsController))")
+            }
+        }
     }
 }
