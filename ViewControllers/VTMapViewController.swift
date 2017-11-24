@@ -62,15 +62,22 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
     */
 
     @IBAction func addPin(_ sender: UILongPressGestureRecognizer) {
-        let location = sender.location(in: mapView)
-        let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
-        
-        // Add annotation:
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = coordinate
-        mapView.addAnnotation(annotation)
-        
-        print("\(location), \(coordinate)")
+        if sender.state == .ended {
+            let location = sender.location(in: mapView)
+            let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
+            
+            // Add annotation:
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = coordinate
+            mapView.addAnnotation(annotation)
+            
+            if let context = fetchedResultsController?.managedObjectContext {
+                let pin = Pin(longitude: coordinate.longitude, latitude: coordinate.latitude, context: context)
+                pins.append(pin)
+            }
+            
+            print("\(pins.count) \(mapView.annotations.count)")
+        }
     }
     
     func loadRegion(_ region: [String: Double]) {
