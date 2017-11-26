@@ -29,9 +29,20 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
         let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
         fr.sortDescriptors = []
         
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: (stack?.context)!, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController?.delegate = self
         search()
+        
+        self.pins = fetchedResultsController?.fetchedObjects as! [Pin]
+        
+        print("\(pins.count)")
+        
+        for pin in pins {
+            let coordinate = CLLocationCoordinate2DMake(pin.latitude, pin.longitude)
+            let annotation = MKPointAnnotation()
+            annotation.coordinate = coordinate
+            mapView.addAnnotation(annotation)
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -75,8 +86,6 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
                 let pin = Pin(longitude: coordinate.longitude, latitude: coordinate.latitude, context: context)
                 pins.append(pin)
             }
-            
-            print("\(pins.count) \(mapView.annotations.count)")
         }
     }
     
@@ -112,8 +121,16 @@ extension VTMapViewController: MKMapViewDelegate {
         print("\(annotation)")
         albumViewController.annotation = annotation as MKAnnotation
         
+        //let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
+        //fr.sortDescriptors = []
+        
+        // let pin = fetchedResultsController?.
+        
+        // let pred = NSPredicate(format: "pin = %@", argumentArray: pin)
+        
         present(albumViewController, animated: true)
     }
+
 }
 
 // MARK: - CoreData, Fetches

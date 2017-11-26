@@ -8,8 +8,9 @@
 
 import UIKit
 import MapKit
+import CoreData
 
-class VTAlbumViewController: UIViewController {
+class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegate {
 
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var mapView: MKMapView!
@@ -19,6 +20,8 @@ class VTAlbumViewController: UIViewController {
     let keyForFlickerAPI = "1a9583d866ddba940dde065c1528f782"
     let secretForFlickerAPI = "17170ad252ace78c"
     
+    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -26,6 +29,18 @@ class VTAlbumViewController: UIViewController {
 
         mapView.addAnnotation(annotation)
         mapView.setCenter(annotation.coordinate, animated: true)
+        
+        /*
+        let delegate = UIApplication.shared.delegate as! AppDelegate
+        let stack = delegate.stack
+        
+        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
+        fr.sortDescriptors = []
+        
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController?.delegate = self
+        */
+        
         print("\(photos.count)")
         searchForPhotos()
     }
