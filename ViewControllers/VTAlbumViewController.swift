@@ -78,52 +78,32 @@ class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegat
     }
     
     func searchForPhotos() {
-        var component = URLComponents()
-        component.scheme = "https"
-        component.host = "api.flickr.com"
-        component.path = "/services/rest/"
-        component.queryItems = [URLQueryItem]()
+        let url = client.requestURL(longitude: pin.longitude, latitude: pin.latitude)
         
-        let queryMethod = URLQueryItem(name: "method", value: "flickr.photos.search")
-        let queryAPIKey = URLQueryItem(name: "api_key", value: keyForFlickerAPI)
-        let queryFormat = URLQueryItem(name: "format", value: "json")
-        let queryAdditionalItem = URLQueryItem(name: "nojsoncallback", value: "1")
-        let queryLongitude = URLQueryItem(name: "lon", value: "\(annotation.coordinate.longitude)")
-        let queryLatitude = URLQueryItem(name: "lat", value: "\(annotation.coordinate.latitude)")
-        let queryExtras = URLQueryItem(name: "extras", value: "url_m")
+        let request = URLRequest(url: url)
         
-        component.queryItems!.append(queryMethod)
-        component.queryItems!.append(queryAPIKey)
-        component.queryItems!.append(queryFormat)
-        component.queryItems!.append(queryAdditionalItem)
-        component.queryItems!.append(queryLongitude)
-        component.queryItems!.append(queryLatitude)
-        component.queryItems!.append(queryExtras)
-        
-        print("\(component.url)")
-        
-        let request = URLRequest(url: component.url!)
-        
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            guard error == nil else {
-                print("error: \(error)")
-                return
-            }
-            
-            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
-                print("statusCode: \((response as? HTTPURLResponse)?.statusCode)")
-                return
-            }
-            
-            guard let data = data else {
-                print("No data was returned")
+        let _ = client.dataTask(with: request) { (data, error) in
+            guard (error == nil) else {
+                guard let errorString = error!.userInfo[NSLocalizedDescriptionKey] as? String else {
+                    print("There was an unknown error with your request.")
+                    return
+                }
+                
+                // Distinguish an error due to time-out from one caused by wrong credentials.
+                if errorString.starts(with: "There was an error with your request: ") {
+                    print("The request timed out.")
+                } else if errorString == "Your request returned a status code other than 2xx!" {
+                    print("Account not found. Wrong email or password.")
+                } else {
+                    print("\(errorString)")
+                }
                 return
             }
             
             let parsedResult: [String: AnyObject]!
             
             do {
-                parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String: AnyObject]
+                parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String: AnyObject]
             } catch {
                 print("Cannot parse the data as JSON")
                 return
