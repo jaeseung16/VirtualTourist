@@ -12,7 +12,55 @@ class VTFlickrSearch {
     // MARK: Properties
     var session = URLSession.shared
     
+    var photosArray = [ [String: AnyObject] ]()
+    
     // MARK: - Methods
+    func searchPhotos(longitude: Double, latitude: Double, completionHandler: @escaping (_ success: Bool, _ error: String?) -> Void) {
+        let url = requestURL(longitude: longitude, latitude: latitude)
+        let request = URLRequest(url: url)
+        let _ = dataTask(with: request) { (data, error) in
+            guard (error == nil) else {
+                guard let errorString = error!.userInfo[NSLocalizedDescriptionKey] as? String else {
+                    completionHandler(false, "There was an unknown error with your request.")
+                    return
+                }
+                
+                // Distinguish an error due to time-out from one caused by wrong credentials.
+                if errorString.starts(with: "There was an error with your request: ") {
+                    completionHandler(false, "The request timed out.")
+                } else if errorString == "Your request returned a status code other than 2xx!" {
+                    completionHandler(false, "Account not found. Wrong email or password.")
+                } else {
+                   completionHandler(false, "\(errorString)")
+                }
+                return
+            }
+            
+            let parsedResult: [String: AnyObject]!
+            
+            do {
+                parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String: AnyObject]
+            } catch {
+                completionHandler(false, "Cannot parse the data as JSON")
+                return
+            }
+            
+            guard let photosDictionary = parsedResult["photos"] as? [String: AnyObject] else {
+                completionHandler(false, "Cannot find \"photos\" key in \(parsedResult).")
+                return
+            }
+            
+            guard let photosArray = photosDictionary["photo"] as? [ [String: AnyObject] ] else {
+                completionHandler(false, "Cannot find photos in \(photosDictionary).")
+                return
+            }
+            
+            self.photosArray = photosArray
+            
+            completionHandler(true, nil)
+        }
+    }
+    
     func requestURL(longitude: Double, latitude: Double) -> URL {
         var component = URLComponents()
         component.scheme = Constant.scheme

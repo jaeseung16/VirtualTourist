@@ -33,7 +33,7 @@ class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegat
         mapView.setCenter(annotation.coordinate, animated: true)
 
         
-        print("\(photos.count)")
+        // print("\(photos.count)")
         
         if let fc = fetchedResultsController {
             do {
@@ -44,14 +44,14 @@ class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegat
             
             let photos = fc.fetchedObjects as! [Photo]
             
-            print("\(photos.count)")
+            // print("\(photos.count)")
             
             if photos.count == 0 {
                 searchForPhotos()
             } else {
                 self.photos = photos
+                photosCollectionView.reloadData()
             }
-            
         } else {
             searchForPhotos()
         }
@@ -140,7 +140,7 @@ class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegat
                     print("Image does not exist at \(imageURL)")
                 }
             }
-            print("\(self.photos.count)")
+            // print("\(self.photos.count)")
         }
 
     }
@@ -155,7 +155,7 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         //print("section: \(section)")
-        //print("photos.count: \(photos.count)")
+        print("photos.count: \(photos.count)")
         return photos.count
     }
     
