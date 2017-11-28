@@ -17,6 +17,8 @@
 		0B92D3101FBE24C20028ED9E /* VirtualTouristTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B92D30F1FBE24C20028ED9E /* VirtualTouristTests.swift */; };
 		0B92D31B1FBE24C20028ED9E /* VirtualTouristUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B92D31A1FBE24C20028ED9E /* VirtualTouristUITests.swift */; };
 		0B92D3291FBE26890028ED9E /* VTMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B92D3281FBE26890028ED9E /* VTMapViewController.swift */; };
+		9067DAF01FCCD78A00E84A41 /* VTFlickrSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9067DAEF1FCCD78A00E84A41 /* VTFlickrSearch.swift */; };
+		9067DAF21FCCD7BE00E84A41 /* VTConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9067DAF11FCCD7BE00E84A41 /* VTConstants.swift */; };
 		90E68A081FC8A02500B3E2AF /* VTModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 90E68A061FC8A02500B3E2AF /* VTModel.xcdatamodeld */; };
 		90E68A0D1FC8A25500B3E2AF /* Photo+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90E68A091FC8A25500B3E2AF /* Photo+CoreDataClass.swift */; };
 		90E68A0E1FC8A25500B3E2AF /* Photo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90E68A0A1FC8A25500B3E2AF /* Photo+CoreDataProperties.swift */; };
@@ -59,6 +61,8 @@
 		0B92D31A1FBE24C20028ED9E /* VirtualTouristUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualTouristUITests.swift; sourceTree = "<group>"; };
 		0B92D31C1FBE24C20028ED9E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0B92D3281FBE26890028ED9E /* VTMapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VTMapViewController.swift; sourceTree = "<group>"; };
+		9067DAEF1FCCD78A00E84A41 /* VTFlickrSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VTFlickrSearch.swift; sourceTree = "<group>"; };
+		9067DAF11FCCD7BE00E84A41 /* VTConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VTConstants.swift; sourceTree = "<group>"; };
 		90E68A071FC8A02500B3E2AF /* VTModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = VTModel.xcdatamodel; sourceTree = "<group>"; };
 		90E68A091FC8A25500B3E2AF /* Photo+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataClass.swift"; sourceTree = "<group>"; };
 		90E68A0A1FC8A25500B3E2AF /* Photo+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Photo+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -164,6 +168,8 @@
 			children = (
 				0B92D3281FBE26890028ED9E /* VTMapViewController.swift */,
 				0B7A886F1FC2157700C12871 /* VTAlbumViewController.swift */,
+				9067DAEF1FCCD78A00E84A41 /* VTFlickrSearch.swift */,
+				9067DAF11FCCD7BE00E84A41 /* VTConstants.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -311,6 +317,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				90E68A0F1FC8A25500B3E2AF /* Pin+CoreDataClass.swift in Sources */,
+				9067DAF21FCCD7BE00E84A41 /* VTConstants.swift in Sources */,
 				0B72C2F11FC387CB00720555 /* VTPhotoCollectionViewCell.swift in Sources */,
 				90E68A0D1FC8A25500B3E2AF /* Photo+CoreDataClass.swift in Sources */,
 				90E68A101FC8A25500B3E2AF /* Pin+CoreDataProperties.swift in Sources */,
@@ -320,6 +327,7 @@
 				0B92D2FD1FBE24C20028ED9E /* ViewController.swift in Sources */,
 				0B92D2FB1FBE24C20028ED9E /* AppDelegate.swift in Sources */,
 				90E68A0E1FC8A25500B3E2AF /* Photo+CoreDataProperties.swift in Sources */,
+				9067DAF01FCCD78A00E84A41 /* VTFlickrSearch.swift in Sources */,
 				90E68A081FC8A02500B3E2AF /* VTModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

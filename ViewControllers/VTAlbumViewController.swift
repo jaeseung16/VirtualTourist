@@ -14,11 +14,12 @@ class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegat
 
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var mapView: MKMapView!
-    var annotation: MKAnnotation!
-    var photos = [UIImage]()
+
+    var pin: Pin!
+    var photos = [Photo]()
+    var annotation = MKPointAnnotation()
     
-    let keyForFlickerAPI = "1a9583d866ddba940dde065c1528f782"
-    let secretForFlickerAPI = "17170ad252ace78c"
+    let client = VTFlickrSearch()
     
     var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?
     
@@ -26,23 +27,34 @@ class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegat
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
-
+        annotation.coordinate = CLLocationCoordinate2DMake(pin.latitude, pin.longitude)
+        
         mapView.addAnnotation(annotation)
         mapView.setCenter(annotation.coordinate, animated: true)
-        
-        /*
-        let delegate = UIApplication.shared.delegate as! AppDelegate
-        let stack = delegate.stack
-        
-        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
-        fr.sortDescriptors = []
-        
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController?.delegate = self
-        */
+
         
         print("\(photos.count)")
-        searchForPhotos()
+        
+        if let fc = fetchedResultsController {
+            do {
+                try fc.performFetch()
+            } catch let e as NSError {
+                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+            }
+            
+            let photos = fc.fetchedObjects as! [Photo]
+            
+            print("\(photos.count)")
+            
+            if photos.count == 0 {
+                searchForPhotos()
+            } else {
+                self.photos = photos
+            }
+            
+        } else {
+            searchForPhotos()
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -134,19 +146,23 @@ class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegat
                 
                 let imageURL = URL(string: imageURLString)
                 if let imageData = try? Data(contentsOf: imageURL!) {
+                    if let context = self.fetchedResultsController?.managedObjectContext {
+                        let photo = Photo(imageData: imageData as NSData, pin: self.pin, context: context)
+                        self.photos.append(photo)
+                    }
+
                     DispatchQueue.main.async {
-                        self.photos.append(UIImage(data: imageData)!)
                         let index = IndexPath(item: self.photos.count - 1, section: 0)
                         self.photosCollectionView.insertItems(at: [index])
                     }
+                    
                 } else {
                     print("Image does not exist at \(imageURL)")
                 }
-                
             }
+            print("\(self.photos.count)")
         }
-        
-        task.resume()
+
     }
     
 }
@@ -176,9 +192,9 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
         */
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoImage", for: indexPath) as! VTPhotoCollectionViewCell
         
-        print("\(photos[indexPath.item])")
+        // print("\(photos[indexPath.item])")
         
-        cell.imageView.image = photos[indexPath.item]
+        cell.imageView.image = UIImage(data: photos[indexPath.item].imageData! as Data)
        
         return cell
     }

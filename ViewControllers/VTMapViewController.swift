@@ -119,14 +119,32 @@ extension VTMapViewController: MKMapViewDelegate {
         }
         
         print("\(annotation)")
-        albumViewController.annotation = annotation as MKAnnotation
         
-        //let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
-        //fr.sortDescriptors = []
+        let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
+        fr.sortDescriptors = []
         
-        // let pin = fetchedResultsController?.
+        let index = pins.index(where: { ($0.longitude == annotation.coordinate.longitude) && ($0.latitude == annotation.coordinate.latitude) } )!
         
-        // let pred = NSPredicate(format: "pin = %@", argumentArray: pin)
+        print("\(pins[index])")
+        
+        albumViewController.pin = pins[index]
+        
+        let pred = NSPredicate(format: "pin = %@", argumentArray: [pins[index]])
+        fr.predicate = pred
+        
+        let fc = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: fetchedResultsController!.managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
+        
+        albumViewController.fetchedResultsController = fc
+        
+        do {
+            try fc.performFetch()
+        } catch let e as NSError {
+            print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+        }
+        
+        let photos = fc.fetchedObjects as! [Photo]
+        
+        print("\(photos.count)")
         
         present(albumViewController, animated: true)
     }
