@@ -2,7 +2,7 @@
 //  Pin+CoreDataProperties.swift
 //  VirtualTourist
 //
-//  Created by Jae Seung Lee on 11/24/17.
+//  Created by Jae Seung Lee on 11/28/17.
 //  Copyright © 2017 Jae-Seung Lee. All rights reserved.
 //
 //
@@ -17,8 +17,9 @@ extension Pin {
         return NSFetchRequest<Pin>(entityName: "Pin")
     }
 
-    @NSManaged public var longitude: Double
     @NSManaged public var latitude: Double
+    @NSManaged public var longitude: Double
+    @NSManaged public var created: Date
     @NSManaged public var photos: NSSet?
 
 }

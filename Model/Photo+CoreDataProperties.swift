@@ -2,7 +2,7 @@
 //  Photo+CoreDataProperties.swift
 //  VirtualTourist
 //
-//  Created by Jae Seung Lee on 11/24/17.
+//  Created by Jae Seung Lee on 11/28/17.
 //  Copyright © 2017 Jae-Seung Lee. All rights reserved.
 //
 //
@@ -18,6 +18,7 @@ extension Photo {
     }
 
     @NSManaged public var imageData: NSData?
-    @NSManaged public var pin: Pin?
+    @NSManaged public var imageURL: String
+    @NSManaged public var pin: Pin
 
 }
