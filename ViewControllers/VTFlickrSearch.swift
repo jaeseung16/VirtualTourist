@@ -12,56 +12,63 @@ class VTFlickrSearch {
     // MARK: Properties
     var session = URLSession.shared
     
-    var photosArray = [ [String: AnyObject] ]()
+    var imageURLArray = [String]()
     
     // MARK: - Methods
-    func searchPhotos(longitude: Double, latitude: Double, completionHandler: @escaping (_ success: Bool, _ error: String?) -> Void) {
-        let url = requestURL(longitude: longitude, latitude: latitude)
-        let request = URLRequest(url: url)
-        let _ = dataTask(with: request) { (data, error) in
+    func searchPhotos(longitude: Double, latitude: Double, completionHandler: @escaping (_ urlArray: [String]?, _ error: String?) -> Void) {
+        let url = searchURL(longitude: longitude, latitude: latitude)
+        
+        let _ = dataTask(with: url) { (data, error) in
             guard (error == nil) else {
                 guard let errorString = error!.userInfo[NSLocalizedDescriptionKey] as? String else {
-                    completionHandler(false, "There was an unknown error with your request.")
+                    completionHandler(nil, "There was an unknown error with your request.")
                     return
                 }
                 
                 // Distinguish an error due to time-out from one caused by wrong credentials.
                 if errorString.starts(with: "There was an error with your request: ") {
-                    completionHandler(false, "The request timed out.")
+                    completionHandler(nil, "The request timed out.")
                 } else if errorString == "Your request returned a status code other than 2xx!" {
-                    completionHandler(false, "Account not found. Wrong email or password.")
+                    completionHandler(nil, "Invalid request.")
                 } else {
-                   completionHandler(false, "\(errorString)")
+                   completionHandler(nil, "\(errorString)")
                 }
                 return
             }
             
-            let parsedResult: [String: AnyObject]!
-            
-            do {
-                parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String: AnyObject]
-            } catch {
-                completionHandler(false, "Cannot parse the data as JSON")
-                return
+            if let errorString = self.parseJSON(with: data!) {
+                completionHandler(nil, errorString)
+            } else {
+                completionHandler(self.imageURLArray, nil)
             }
-            
-            guard let photosDictionary = parsedResult["photos"] as? [String: AnyObject] else {
-                completionHandler(false, "Cannot find \"photos\" key in \(parsedResult).")
-                return
-            }
-            
-            guard let photosArray = photosDictionary["photo"] as? [ [String: AnyObject] ] else {
-                completionHandler(false, "Cannot find photos in \(photosDictionary).")
-                return
-            }
-            
-            self.photosArray = photosArray
-            
-            completionHandler(true, nil)
         }
     }
     
-    func requestURL(longitude: Double, latitude: Double) -> URL {
+    func parseJSON(with data: Data) -> String? {
+        let parsedResult: [String: AnyObject]!
+        
+        do {
+            parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String: AnyObject]
+        } catch {
+            return "Cannot parse the data as JSON"
+        }
+        
+        guard let photosDictionary = parsedResult["photos"] as? [String: AnyObject] else {
+            return "Cannot find \"photos\" key in \(parsedResult)."
+        }
+        
+        guard let photosArray = photosDictionary["photo"] as? [ [String: AnyObject] ] else {
+            return "Cannot find photos in \(photosDictionary)."
+        }
+        
+        for photo in photosArray {
+            imageURLArray.append((photo["url_m"] as? String)!)
+        }
+        
+        return nil
+    }
+    
+    func searchURL(longitude: Double, latitude: Double) -> URL {
         var component = URLComponents()
         component.scheme = Constant.scheme
         component.host = Constant.host
@@ -87,7 +94,10 @@ class VTFlickrSearch {
         return component.url!
     }
     
-    func dataTask(with request: URLRequest, completionHandler: @escaping (_ data: Data?, _ error: NSError?) -> Void) -> URLSessionDataTask {
+    func dataTask(with url: URL, completionHandler: @escaping (_ data: Data?, _ error: NSError?) -> Void) -> URLSessionDataTask {
+        
+        let request = URLRequest(url: url)
+        
         let task = session.dataTask(with: request) { (data, response, error) in
             func sendError(_ error: String) {
                 let userInfo = [NSLocalizedDescriptionKey: error]
