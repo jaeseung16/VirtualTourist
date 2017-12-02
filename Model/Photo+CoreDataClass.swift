@@ -15,6 +15,7 @@ public class Photo: NSManagedObject {
         if let entity = NSEntityDescription.entity(forEntityName: "Photo", in: context) {
             self.init(entity: entity, insertInto: context)
             self.imageURL = url
+            self.created = Date()
             self.pin = pin
         } else {
             fatalError("Unable to find the entity name, \"Photo\".")
