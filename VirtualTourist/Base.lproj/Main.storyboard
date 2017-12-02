@@ -123,13 +123,21 @@
                                     <outlet property="delegate" destination="s8d-SQ-rN6" id="ReK-SD-5VZ"/>
                                 </connections>
                             </collectionView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="No Images" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="g60-hL-Qzh">
+                                <rect key="frame" x="144" y="333" width="87" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="4Mc-X1-y3y" firstAttribute="leading" secondItem="OzV-Cm-qUz" secondAttribute="leading" id="5g2-Bn-bvX"/>
                             <constraint firstItem="OzV-Cm-qUz" firstAttribute="trailing" secondItem="84p-NR-x8p" secondAttribute="trailing" id="B09-d5-8ib"/>
                             <constraint firstItem="BFm-gm-2oW" firstAttribute="top" secondItem="AiA-VI-KCN" secondAttribute="bottom" id="Fqa-S3-Xr8"/>
-                            <constraint firstItem="AiA-VI-KCN" firstAttribute="height" secondItem="84p-NR-x8p" secondAttribute="height" multiplier="3" id="Itb-qh-agF"/>
+                            <constraint firstItem="g60-hL-Qzh" firstAttribute="centerY" secondItem="OzV-Cm-qUz" secondAttribute="centerY" id="Hau-NT-i7i"/>
+                            <constraint firstItem="AiA-VI-KCN" firstAttribute="height" secondItem="84p-NR-x8p" secondAttribute="height" multiplier="3" constant="-1" id="Itb-qh-agF"/>
+                            <constraint firstItem="g60-hL-Qzh" firstAttribute="centerX" secondItem="OzV-Cm-qUz" secondAttribute="centerX" id="JaM-Qy-XYu"/>
                             <constraint firstItem="OzV-Cm-qUz" firstAttribute="bottom" secondItem="BFm-gm-2oW" secondAttribute="bottom" id="Lwo-Bv-l5G"/>
                             <constraint firstItem="BFm-gm-2oW" firstAttribute="leading" secondItem="OzV-Cm-qUz" secondAttribute="leading" id="Mpm-oP-fJO"/>
                             <constraint firstItem="OzV-Cm-qUz" firstAttribute="trailing" secondItem="BFm-gm-2oW" secondAttribute="trailing" id="ZSz-EA-8EU"/>
@@ -144,7 +152,9 @@
                         <viewLayoutGuide key="safeArea" id="OzV-Cm-qUz"/>
                     </view>
                     <connections>
+                        <outlet property="doneButton" destination="G4G-iI-cBF" id="uGY-Qs-8Ro"/>
                         <outlet property="mapView" destination="84p-NR-x8p" id="Cjq-JT-17i"/>
+                        <outlet property="noImagesLabel" destination="g60-hL-Qzh" id="XRp-kv-II1"/>
                         <outlet property="photosCollectionView" destination="AiA-VI-KCN" id="SmU-IW-CH8"/>
                     </connections>
                 </viewController>

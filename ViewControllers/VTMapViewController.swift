@@ -16,7 +16,22 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
     
     var pins = [Pin]()
     
-    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?
+    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?  {
+        didSet {
+            fetchedResultsController?.delegate = self
+            
+            if let fc = fetchedResultsController {
+                do {
+                    try fc.performFetch()
+                } catch let e as NSError {
+                    print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+                }
+            }
+            print(".")
+        }
+    }
+    
+    let client = VTFlickrSearch()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,7 +42,7 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
         let stack = delegate.stack
         
         let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
-        fr.sortDescriptors = []
+        fr.sortDescriptors = [NSSortDescriptor(key: "created", ascending: false)]
         
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController?.delegate = self
@@ -117,24 +132,18 @@ extension VTMapViewController: MKMapViewDelegate {
             print("No annotation")
             return
         }
-        
-        print("\(annotation)")
-        
+
         let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
-        fr.sortDescriptors = []
+        fr.sortDescriptors = [NSSortDescriptor(key: "created", ascending: true)]
         
         let index = pins.index(where: { ($0.longitude == annotation.coordinate.longitude) && ($0.latitude == annotation.coordinate.latitude) } )!
         
-        print("\(pins[index])")
-        
-        albumViewController.pin = pins[index]
-        
+        print("VTMap \(pins[index].latitude), \(pins[index].longitude)")
+
         let pred = NSPredicate(format: "pin = %@", argumentArray: [pins[index]])
         fr.predicate = pred
         
         let fc = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: fetchedResultsController!.managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
-        
-        albumViewController.fetchedResultsController = fc
         
         do {
             try fc.performFetch()
@@ -142,11 +151,35 @@ extension VTMapViewController: MKMapViewDelegate {
             print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
         }
         
-        let photos = fc.fetchedObjects as! [Photo]
-        
-        print("\(photos.count)")
-        
-        present(albumViewController, animated: true)
+        var photos = fc.fetchedObjects as! [Photo]
+        albumViewController.pin = pins[index]
+
+        if photos.count == 0 {
+            let _ = client.searchPhotos(longitude: annotation.coordinate.longitude, latitude: annotation.coordinate.latitude, completionHandler: { (urlArray, error) in
+                
+                guard (error == nil) else {
+                    print("\(String(describing: error))")
+                    return
+                }
+                
+                print("array \(urlArray!.count)")
+                for url in urlArray! {
+                    let photo = Photo(url: url, pin: self.pins[index], context: fc.managedObjectContext)
+                    photos.append(photo)
+                }
+                
+                albumViewController.fetchedResultsController = fc
+                albumViewController.photos = photos
+                
+                DispatchQueue.main.async {
+                    self.present(albumViewController, animated: true)
+                }
+            })
+        } else {
+            albumViewController.fetchedResultsController = fc
+            albumViewController.photos = photos
+            self.present(albumViewController, animated: true)
+        }
     }
 
 }

@@ -10,51 +10,61 @@ import UIKit
 import MapKit
 import CoreData
 
-class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegate {
+class VTAlbumViewController: UIViewController {
 
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var mapView: MKMapView!
 
+    @IBOutlet weak var doneButton: UIBarButtonItem!
+    @IBOutlet weak var noImagesLabel: UILabel!
+    
     var pin: Pin!
     var photos = [Photo]()
     var annotation = MKPointAnnotation()
     
     let client = VTFlickrSearch()
     
-    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?
+    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>? {
+        didSet {
+            fetchedResultsController?.delegate = self
+            
+            if let fc = fetchedResultsController {
+                do {
+                    try fc.performFetch()
+                } catch let e as NSError {
+                    print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+                }
+            }
+            print(".")
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
         annotation.coordinate = CLLocationCoordinate2DMake(pin.latitude, pin.longitude)
         
         mapView.addAnnotation(annotation)
         mapView.setCenter(annotation.coordinate, animated: true)
 
+        noImagesLabel.isHidden = true
+        doneButton.isEnabled = false
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        print("VTAlbum \(photos.count)")
+        print("VTAlbum \(pin.latitude), \(pin.longitude)")
         
-        // print("\(photos.count)")
-        
-        if let fc = fetchedResultsController {
-            do {
-                try fc.performFetch()
-            } catch let e as NSError {
-                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
-            }
-            
-            let photos = fc.fetchedObjects as! [Photo]
-            
-            // print("\(photos.count)")
-            
-            if photos.count == 0 {
-                searchForPhotos()
-            } else {
-                self.photos = photos
-                photosCollectionView.reloadData()
-            }
+        if ( photos.count > 0 ) && ( photos[0].imageData == nil ) {
+            downloadImages()
+        } else if (photos.count == 0) {
+            noImagesLabel.isHidden = false
+            self.doneButton.isEnabled = true
         } else {
-            searchForPhotos()
+            self.doneButton.isEnabled = true
         }
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -62,7 +72,6 @@ class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegat
         // Dispose of any resources that can be recreated.
     }
     
-
     /*
     // MARK: - Navigation
 
@@ -77,74 +86,31 @@ class VTAlbumViewController: UIViewController, NSFetchedResultsControllerDelegat
         self.dismiss(animated: true, completion: nil)
     }
     
-    func searchForPhotos() {
-        let url = client.requestURL(longitude: pin.longitude, latitude: pin.latitude)
+    func downloadImages() {
+        print("2 \(photos.count)")
         
-        let request = URLRequest(url: url)
-        
-        let _ = client.dataTask(with: request) { (data, error) in
-            guard (error == nil) else {
-                guard let errorString = error!.userInfo[NSLocalizedDescriptionKey] as? String else {
-                    print("There was an unknown error with your request.")
+        for photo in self.photos {
+            self.client.downloadPhoto(with: photo.imageURL, completionHandler: { (data, error) in
+                guard (error == nil) else {
+                    print("There is an error: \(error!)")
                     return
                 }
                 
-                // Distinguish an error due to time-out from one caused by wrong credentials.
-                if errorString.starts(with: "There was an error with your request: ") {
-                    print("The request timed out.")
-                } else if errorString == "Your request returned a status code other than 2xx!" {
-                    print("Account not found. Wrong email or password.")
-                } else {
-                    print("\(errorString)")
-                }
-                return
-            }
-            
-            let parsedResult: [String: AnyObject]!
-            
-            do {
-                parsedResult = try JSONSerialization.jsonObject(with: data!, options: .allowFragments) as! [String: AnyObject]
-            } catch {
-                print("Cannot parse the data as JSON")
-                return
-            }
-            
-            guard let photosDictionary = parsedResult["photos"] as? [String: AnyObject] else {
-                print("Cannot find \"photos\" key in \(parsedResult).")
-                return
-            }
-            
-            guard let photosArray = photosDictionary["photo"] as? [ [String: AnyObject] ] else {
-                print("Cannot find photos in \(photosDictionary).")
-                return
-            }
-            
-            for photo in photosArray {
-                guard let imageURLString = photo["url_m"] as? String else {
-                    break
+                guard let data = data else {
+                    print("There is no data")
+                    return
                 }
                 
-                let imageURL = URL(string: imageURLString)
-                if let imageData = try? Data(contentsOf: imageURL!) {
-                    if let context = self.fetchedResultsController?.managedObjectContext {
-                        let photo = Photo(imageData: imageData as NSData, pin: self.pin, context: context)
-                        self.photos.append(photo)
-                    }
-
-                    DispatchQueue.main.async {
-                        let index = IndexPath(item: self.photos.count - 1, section: 0)
-                        self.photosCollectionView.insertItems(at: [index])
-                    }
-                    
-                } else {
-                    print("Image does not exist at \(imageURL)")
+                //print("\(self.fetchedResultsController?.indexPath(forObject: photo)!)")
+                
+                DispatchQueue.main.async {
+                    photo.setValue(data as NSData, forKey: "imageData")
                 }
-            }
-            // print("\(self.photos.count)")
+            })
+            
         }
 
     }
-    
 }
 
 extension VTAlbumViewController: MKMapViewDelegate {
@@ -155,8 +121,15 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         //print("section: \(section)")
-        print("photos.count: \(photos.count)")
-        return photos.count
+        //print("photos.count: \(photos.count)")
+        
+        if let fc = fetchedResultsController {
+            return fc.sections![section].numberOfObjects
+        } else {
+            return 0
+        }
+        
+        // return photos.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -170,12 +143,68 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
             return UICollectionViewCell()
         }
         */
+        
+        let photo = fetchedResultsController?.object(at: indexPath) as! Photo
+        
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoImage", for: indexPath) as! VTPhotoCollectionViewCell
         
         // print("\(photos[indexPath.item])")
         
-        cell.imageView.image = UIImage(data: photos[indexPath.item].imageData! as Data)
-       
+        if let imageData = photo.imageData {
+            cell.imageView.image = UIImage(data: imageData as Data)
+        } else {
+            cell.imageView.backgroundColor = .black
+        }
+
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        if let cell = cell as? VTPhotoCollectionViewCell {
+            cell.imageView.backgroundColor = .black
+        }
+    }
+}
+
+extension VTAlbumViewController: NSFetchedResultsControllerDelegate {
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        self.doneButton.isEnabled = false
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
+        let set = IndexSet(integer: sectionIndex)
+        
+        switch type {
+        case .insert:
+            photosCollectionView.insertSections(set)
+        case .delete:
+            photosCollectionView.deleteSections(set)
+        default:
+            break
+        }
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        switch type {
+        case .insert:
+            photosCollectionView.insertItems(at: [newIndexPath!])
+        case .delete:
+            photosCollectionView.deleteItems(at: [indexPath!])
+        case .update:
+            photosCollectionView.reloadItems(at: [indexPath!])
+        case .move:
+            photosCollectionView.deleteItems(at: [indexPath!])
+            photosCollectionView.insertItems(at: [newIndexPath!])
+        }
+    }
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        do {
+            try fetchedResultsController?.managedObjectContext.save()
+            print("Saved")
+            self.doneButton.isEnabled = true
+        } catch {
+            print("Error while saving")
+        }
     }
 }
