@@ -15,6 +15,39 @@ class VTFlickrSearch {
     var imageURLArray = [String]()
     
     // MARK: - Methods
+    func downloadPhoto(with imageURL: String, completionHandler: @escaping (_ data: Data?, _ error: String?) -> Void ) {
+        guard let url = URL(string: imageURL) else {
+            completionHandler(nil, "Invalid URL for an image,")
+            return
+        }
+        
+        let _ = dataTask(with: url) { (data, error) in
+            guard (error == nil) else {
+                guard let errorString = error!.userInfo[NSLocalizedDescriptionKey] as? String else {
+                    completionHandler(nil, "There was an unknown error with your request.")
+                    return
+                }
+                
+                // Distinguish an error due to time-out from one caused by wrong credentials.
+                if errorString.starts(with: "There was an error with your request: ") {
+                    completionHandler(nil, "The request timed out.")
+                } else if errorString == "Your request returned a status code other than 2xx!" {
+                    completionHandler(nil, "Invalid request.")
+                } else {
+                    completionHandler(nil, "\(errorString)")
+                }
+                return
+            }
+            
+            guard let data = data else {
+                completionHandler(nil, "No data was returned by the request!")
+                return
+            }
+            
+            completionHandler(data, nil)
+        }
+    }
+    
     func searchPhotos(longitude: Double, latitude: Double, completionHandler: @escaping (_ urlArray: [String]?, _ error: String?) -> Void) {
         let url = searchURL(longitude: longitude, latitude: latitude)
         
@@ -41,6 +74,8 @@ class VTFlickrSearch {
             } else {
                 completionHandler(self.imageURLArray, nil)
             }
+            
+            self.imageURLArray = []
         }
     }
     
