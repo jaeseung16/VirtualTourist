@@ -27,6 +27,8 @@ extension VTFlickrSearch {
         static let Longitude = "lon"
         static let Latitude = "lat"
         static let Extras = "extras"
+        static let PerPage = "per_page"
+        static let Page = "page"
         static let NoJSONCallBack = "nojsoncallback"
     }
     
@@ -34,6 +36,7 @@ extension VTFlickrSearch {
         static let Method = "flickr.photos.search"
         static let Format = "json"
         static let MediumURL = "url_m"
+        static let PerPage = "100"
         static let DisableJSONCallBack = "1"
     }
     

@@ -49,7 +49,7 @@ class VTFlickrSearch {
     }
     
     func searchPhotos(longitude: Double, latitude: Double, completionHandler: @escaping (_ urlArray: [String]?, _ error: String?) -> Void) {
-        let url = searchURL(longitude: longitude, latitude: latitude)
+        let url = searchURL(longitude: longitude, latitude: latitude, page: 1)
         
         let _ = dataTask(with: url) { (data, error) in
             guard (error == nil) else {
@@ -69,41 +69,89 @@ class VTFlickrSearch {
                 return
             }
             
-            if let errorString = self.parseJSON(with: data!) {
-                completionHandler(nil, errorString)
-            } else {
-                completionHandler(self.imageURLArray, nil)
+            guard let photosDictionary = self.parseJSON(with: data!) else {
+                completionHandler(nil, "Cannot parse the data as JSON")
+                return
             }
             
-            self.imageURLArray = []
+            guard let pages = photosDictionary["pages"] as? Int else {
+                completionHandler(nil, "Cannot find the pages key,")
+                return
+            }
+            
+            let page = Int(arc4random_uniform(UInt32(pages)) + 1)
+            let url = self.searchURL(longitude: longitude, latitude: latitude, page: page)
+            
+            let _ = self.dataTask(with: url) { (data, error) in
+                guard (error == nil) else {
+                    guard let errorString = error!.userInfo[NSLocalizedDescriptionKey] as? String else {
+                        completionHandler(nil, "There was an unknown error with your request.")
+                        return
+                    }
+                    
+                    // Distinguish an error due to time-out from one caused by wrong credentials.
+                    if errorString.starts(with: "There was an error with your request: ") {
+                        completionHandler(nil, "The request timed out.")
+                    } else if errorString == "Your request returned a status code other than 2xx!" {
+                        completionHandler(nil, "Invalid request.")
+                    } else {
+                        completionHandler(nil, "\(errorString)")
+                    }
+                    return
+                }
+                
+                guard let photosDictionary = self.parseJSON(with: data!) else {
+                    completionHandler(nil, "Cannot parse the data as JSON")
+                    return
+                }
+                
+                guard let pages = photosDictionary["pages"] as? Int else {
+                    return
+                }
+                
+                guard let page = photosDictionary["page"] as? Int else {
+                    return
+                }
+                
+                guard let perpage = photosDictionary["perpage"] as? Int else {
+                    return
+                }
+                
+                print("page = \(page), pages = \(pages), perpage = \(perpage)")
+                
+                guard let photosArray = photosDictionary["photo"] as? [ [String: AnyObject] ] else {
+                    completionHandler(nil, "Cannot find the photo key.")
+                    return
+                }
+                
+                for photo in photosArray {
+                    self.imageURLArray.append((photo["url_m"] as? String)!)
+                }
+                
+                completionHandler(self.imageURLArray, nil)
+                self.imageURLArray = []
+            }
+            
         }
     }
     
-    func parseJSON(with data: Data) -> String? {
+    func parseJSON(with data: Data) -> [String: AnyObject]? {
         let parsedResult: [String: AnyObject]!
         
         do {
             parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String: AnyObject]
         } catch {
-            return "Cannot parse the data as JSON"
+            return nil
         }
         
         guard let photosDictionary = parsedResult["photos"] as? [String: AnyObject] else {
-            return "Cannot find \"photos\" key in \(parsedResult)."
+            return nil
         }
         
-        guard let photosArray = photosDictionary["photo"] as? [ [String: AnyObject] ] else {
-            return "Cannot find photos in \(photosDictionary)."
-        }
-        
-        for photo in photosArray {
-            imageURLArray.append((photo["url_m"] as? String)!)
-        }
-        
-        return nil
+        return photosDictionary
     }
     
-    func searchURL(longitude: Double, latitude: Double) -> URL {
+    func searchURL(longitude: Double, latitude: Double, page: Int) -> URL {
         var component = URLComponents()
         component.scheme = Constant.scheme
         component.host = Constant.host
@@ -117,6 +165,8 @@ class VTFlickrSearch {
         let queryLongitude = URLQueryItem(name: QueryKey.Longitude, value: "\(longitude)")
         let queryLatitude = URLQueryItem(name: QueryKey.Latitude, value: "\(latitude)")
         let queryExtras = URLQueryItem(name: QueryKey.Extras, value: QueryValue.MediumURL)
+        let queryPerPage = URLQueryItem(name: QueryKey.PerPage, value: QueryValue.PerPage)
+        let queryPage = URLQueryItem(name: QueryKey.Page, value: "\(page)")
         
         component.queryItems!.append(queryMethod)
         component.queryItems!.append(queryAPIKey)
@@ -125,6 +175,8 @@ class VTFlickrSearch {
         component.queryItems!.append(queryLongitude)
         component.queryItems!.append(queryLatitude)
         component.queryItems!.append(queryExtras)
+        component.queryItems!.append(queryPerPage)
+        component.queryItems!.append(queryPage)
         
         return component.url!
     }
