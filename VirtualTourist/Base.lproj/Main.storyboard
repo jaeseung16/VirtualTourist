@@ -79,7 +79,9 @@
                                     <constraint firstAttribute="height" constant="44" id="gcH-zS-PkM"/>
                                 </constraints>
                                 <items>
-                                    <barButtonItem title="Item" id="KGb-yF-EHo"/>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="Zbd-2d-ld9"/>
+                                    <barButtonItem title="New Collection" id="KGb-yF-EHo"/>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="3vK-DA-dUq"/>
                                 </items>
                             </toolbar>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="84p-NR-x8p">
@@ -154,6 +156,7 @@
                     <connections>
                         <outlet property="doneButton" destination="G4G-iI-cBF" id="uGY-Qs-8Ro"/>
                         <outlet property="mapView" destination="84p-NR-x8p" id="Cjq-JT-17i"/>
+                        <outlet property="newCollectionButton" destination="KGb-yF-EHo" id="WIJ-fz-6hP"/>
                         <outlet property="noImagesLabel" destination="g60-hL-Qzh" id="XRp-kv-II1"/>
                         <outlet property="photosCollectionView" destination="AiA-VI-KCN" id="SmU-IW-CH8"/>
                     </connections>

@@ -18,6 +18,8 @@ class VTAlbumViewController: UIViewController {
     @IBOutlet weak var doneButton: UIBarButtonItem!
     @IBOutlet weak var noImagesLabel: UILabel!
     
+    @IBOutlet weak var newCollectionButton: UIBarButtonItem!
+    
     var pin: Pin!
     var photos = [Photo]()
     var annotation = MKPointAnnotation()
@@ -49,6 +51,8 @@ class VTAlbumViewController: UIViewController {
 
         noImagesLabel.isHidden = true
         doneButton.isEnabled = false
+        
+        newCollectionButton.isEnabled = false
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -60,9 +64,10 @@ class VTAlbumViewController: UIViewController {
             downloadImages()
         } else if (photos.count == 0) {
             noImagesLabel.isHidden = false
-            self.doneButton.isEnabled = true
+            doneButton.isEnabled = true
         } else {
-            self.doneButton.isEnabled = true
+            doneButton.isEnabled = true
+            newCollectionButton.isEnabled = true
         }
         
     }
@@ -107,9 +112,7 @@ class VTAlbumViewController: UIViewController {
                     photo.setValue(data as NSData, forKey: "imageData")
                 }
             })
-            
         }
-
     }
 }
 
@@ -164,11 +167,30 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
             cell.imageView.backgroundColor = .black
         }
     }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if let context = fetchedResultsController?.managedObjectContext {
+            let photo = fetchedResultsController?.object(at: indexPath) as! Photo
+            context.delete(photo)
+            
+            if context.hasChanges {
+                do {
+                    try context.save()
+                    print("Saved after deletion")
+                    self.doneButton.isEnabled = true
+                    self.newCollectionButton.isEnabled = true
+                } catch {
+                    print("Error while saving ...")
+                }
+            }
+        }
+    }
 }
 
 extension VTAlbumViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         self.doneButton.isEnabled = false
+        self.newCollectionButton.isEnabled = false
     }
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
@@ -203,8 +225,9 @@ extension VTAlbumViewController: NSFetchedResultsControllerDelegate {
             try fetchedResultsController?.managedObjectContext.save()
             print("Saved")
             self.doneButton.isEnabled = true
+            self.newCollectionButton.isEnabled = true
         } catch {
-            print("Error while saving")
+            print("Error while saving ..")
         }
     }
 }
