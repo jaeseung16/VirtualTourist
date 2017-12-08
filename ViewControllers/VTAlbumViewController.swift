@@ -20,6 +20,10 @@ class VTAlbumViewController: UIViewController {
     
     @IBOutlet weak var newCollectionButton: UIBarButtonItem!
     
+    @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
+    
+    let space: CGFloat = 3.0
+    
     var pin: Pin!
     var photos = [Photo]()
     var annotation = MKPointAnnotation()
@@ -53,6 +57,8 @@ class VTAlbumViewController: UIViewController {
         doneButton.isEnabled = false
         
         newCollectionButton.isEnabled = false
+        
+        adjustFlowLayoutSize(size: self.view.frame.size)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -364,6 +370,37 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
                 }
             }
         }
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        // This method is called when the orientaition of a device changes even before the view controller is loaded.
+        // So checking whether flowLayout exists before updating the collection view
+        if self.flowLayout != nil {
+            self.flowLayout.invalidateLayout()
+            adjustFlowLayoutSize(size: size)
+        }
+    }
+    
+    func adjustFlowLayoutSize(size: CGSize) {
+        let dimension = cellSize(size: size, space: self.space)
+        
+        self.flowLayout.minimumInteritemSpacing = self.space
+        self.flowLayout.minimumLineSpacing = self.space
+        self.flowLayout.itemSize = CGSize(width: dimension, height: dimension)
+    }
+    
+    func cellSize(size: CGSize, space: CGFloat) -> CGFloat {
+        let height = size.height
+        let width = size.width
+        
+        let numberInRowPortrait = 4.0
+        let numberInRowLandscape = 6.0
+        
+        let numberInRow = height > width ? CGFloat(numberInRowPortrait) : CGFloat(numberInRowLandscape)
+        
+        return ( width - (numberInRow - 1) * space ) / numberInRow
     }
 }
 
