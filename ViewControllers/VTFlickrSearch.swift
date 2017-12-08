@@ -125,7 +125,11 @@ class VTFlickrSearch {
                 }
                 
                 for photo in photosArray {
-                    self.imageURLArray.append((photo["url_m"] as? String)!)
+                    if let url = photo["url_m"] as? String {
+                        self.imageURLArray.append(url)
+                    } else {
+                        print("No imageURL: \(photo)")
+                    }
                 }
                 
                 completionHandler(self.imageURLArray, nil)

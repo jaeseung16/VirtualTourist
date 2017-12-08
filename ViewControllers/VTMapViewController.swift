@@ -151,7 +151,7 @@ extension VTMapViewController: MKMapViewDelegate {
             print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
         }
         
-        var photos = fc.fetchedObjects as! [Photo]
+        let photos = fc.fetchedObjects as! [Photo]
         albumViewController.pin = pins[index]
 
         if photos.count == 0 {
@@ -163,21 +163,30 @@ extension VTMapViewController: MKMapViewDelegate {
                 }
                 
                 print("array \(urlArray!.count)")
-                for url in urlArray! {
-                    let photo = Photo(url: url, pin: self.pins[index], context: fc.managedObjectContext)
-                    photos.append(photo)
-                }
-                
-                albumViewController.fetchedResultsController = fc
-                albumViewController.photos = photos
-                
+            
                 DispatchQueue.main.async {
+                    for url in urlArray! {
+                        let photo = Photo(url: url, pin: self.pins[index], context: fc.managedObjectContext)
+                        fc.managedObjectContext.insert(photo)
+                        
+                        if fc.managedObjectContext.hasChanges {
+                            do {
+                                try fc.managedObjectContext.save()
+                                print("Saved before present")
+                            } catch {
+                                print("Error while saving ....")
+                            }
+                        }
+                    }
+                    
+                    albumViewController.fetchedResultsController = fc
+                    //albumViewController.photos = photos
                     self.present(albumViewController, animated: true)
                 }
             })
         } else {
             albumViewController.fetchedResultsController = fc
-            albumViewController.photos = photos
+            //albumViewController.photos = photos
             self.present(albumViewController, animated: true)
         }
     }

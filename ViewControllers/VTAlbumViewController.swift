@@ -57,6 +57,9 @@ class VTAlbumViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        
+        let photos = fetchedResultsController?.fetchedObjects as! [Photo]
+        
         print("VTAlbum \(photos.count)")
         print("VTAlbum \(pin.latitude), \(pin.longitude)")
         
@@ -92,10 +95,23 @@ class VTAlbumViewController: UIViewController {
     }
     
     func downloadImages() {
+        if let fc = fetchedResultsController {
+            do {
+                try fc.performFetch()
+            } catch let e as NSError {
+                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+            }
+        }
+        
+        let photos = fetchedResultsController?.fetchedObjects as! [Photo]
+        
         print("2 \(photos.count)")
         
-        for photo in self.photos {
-            self.client.downloadPhoto(with: photo.imageURL, completionHandler: { (data, error) in
+        for photo in photos {
+            let indexPath = fetchedResultsController?.indexPath(forObject: photo)
+            let object = fetchedResultsController?.object(at: indexPath!) as! Photo
+            
+            self.client.downloadPhoto(with: object.imageURL, completionHandler: { (data, error) in
                 guard (error == nil) else {
                     print("There is an error: \(error!)")
                     return
@@ -109,10 +125,173 @@ class VTAlbumViewController: UIViewController {
                 //print("\(self.fetchedResultsController?.indexPath(forObject: photo)!)")
                 
                 DispatchQueue.main.async {
-                    photo.setValue(data as NSData, forKey: "imageData")
+                    object.setValue(data as NSData, forKey: "imageData")
+                    /*
+                    if (self.fetchedResultsController?.managedObjectContext.hasChanges)! {
+                        do {
+                            try self.fetchedResultsController?.managedObjectContext.save()
+                            print("Saved before renewal")
+                            self.doneButton.isEnabled = true
+                            self.newCollectionButton.isEnabled = true
+                        } catch {
+                            print("Error while saving ....")
+                        }
+                    }*/
                 }
             })
         }
+    }
+    
+    @IBAction func renewImages(_ sender: UIBarButtonItem) {
+        if let fc = fetchedResultsController {
+            do {
+                try fc.performFetch()
+            } catch let e as NSError {
+                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+            }
+        }
+        
+        var photos = fetchedResultsController?.fetchedObjects as! [Photo]
+        
+        print("2 \(photos.count)")
+        
+        if let context = fetchedResultsController?.managedObjectContext {
+            for photo in photos{
+                context.delete(photo)
+                
+                if context.hasChanges {
+                    do {
+                        try context.save()
+                        print("Saved before renewal")
+                        self.doneButton.isEnabled = true
+                        self.newCollectionButton.isEnabled = true
+                    } catch {
+                        print("Error while saving ....")
+                    }
+                }
+            }
+        }
+        
+        if let fc = fetchedResultsController {
+            do {
+                try fc.performFetch()
+            } catch let e as NSError {
+                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+            }
+        }
+        
+        photos = fetchedResultsController?.fetchedObjects as! [Photo]
+        print("\(photos.count)")
+        
+        let _ = client.searchPhotos(longitude: annotation.coordinate.longitude, latitude: annotation.coordinate.latitude, completionHandler: { (urlArray, error) in
+            
+            guard (error == nil) else {
+                print("\(String(describing: error))")
+                return
+            }
+            
+            print("array \(urlArray!.count)")
+            
+            DispatchQueue.main.async {
+                let fc = self.fetchedResultsController!
+                photos = fc.fetchedObjects as! [Photo]
+                print("queue \(photos.count)")
+                
+                for url in urlArray! {
+                    let photo = Photo(url: url, pin: self.pin, context: fc.managedObjectContext)
+                    
+                    fc.managedObjectContext.insert(photo)
+                    
+                    if fc.managedObjectContext.hasChanges {
+                        do {
+                            try fc.managedObjectContext.save()
+                            print("Saved before present")
+                        } catch {
+                            print("Error while saving ....")
+                        }
+                    }
+                }
+                
+                if fc.managedObjectContext.hasChanges {
+                    do {
+                        try fc.managedObjectContext.save()
+                        print("Saved before present")
+                    } catch {
+                        print("Error while saving ....")
+                    }
+                }
+                
+                if let fc = self.fetchedResultsController {
+                    do {
+                        try fc.performFetch()
+                    } catch let e as NSError {
+                        print("Error while trying to perform a search: \n\(e)\n\(self.fetchedResultsController)")
+                    }
+                }
+                
+                photos = self.fetchedResultsController?.fetchedObjects as! [Photo]
+                print("queue \(photos.count)")
+                
+                self.downloadImages()
+            }
+            
+        })
+        
+        /*
+        photos.removeAll()
+        print("\(photos.count)")
+        
+        do {
+            try stack.saveContext()
+        } catch {
+            print("error....")
+        }
+        
+        if let fc = fetchedResultsController {
+            do {
+                try fc.performFetch()
+            } catch let e as NSError {
+                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+            }
+        }*/
+        
+        
+        /*
+        for photo in photos {
+            if let context = fetchedResultsController?.managedObjectContext {
+                fetchedResultsController?.managedObjectContext.delete(photo)
+                
+                if context.hasChanges {
+                    do {
+                        try context.save()
+                        print("Saved before renewal")
+                        self.doneButton.isEnabled = true
+                        self.newCollectionButton.isEnabled = true
+                    } catch {
+                        print("Error while saving ....")
+                    }
+                }
+            }
+        }
+        
+        print("\(photos.count)")
+        
+        
+        let _ = client.searchPhotos(longitude: annotation.coordinate.longitude, latitude: annotation.coordinate.latitude, completionHandler: { (urlArray, error) in
+            
+            guard (error == nil) else {
+                print("\(String(describing: error))")
+                return
+            }
+            
+            print("array \(urlArray!.count)")
+            for url in urlArray! {
+                let photo = Photo(url: url, pin: self.pins[index], context: fc.managedObjectContext)
+                photos.append(photo)
+            }
+            
+        })*/
+        
     }
 }
 
@@ -156,6 +335,7 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
         if let imageData = photo.imageData {
             cell.imageView.image = UIImage(data: imageData as Data)
         } else {
+            cell.imageView.image = nil
             cell.imageView.backgroundColor = .black
         }
 
@@ -221,13 +401,17 @@ extension VTAlbumViewController: NSFetchedResultsControllerDelegate {
     }
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        do {
-            try fetchedResultsController?.managedObjectContext.save()
-            print("Saved")
-            self.doneButton.isEnabled = true
-            self.newCollectionButton.isEnabled = true
-        } catch {
-            print("Error while saving ..")
+        if let context = fetchedResultsController?.managedObjectContext {
+            if context.hasChanges {
+                do {
+                    try context.save()
+                    print("Saved after content changed")
+                    self.doneButton.isEnabled = true
+                    self.newCollectionButton.isEnabled = true
+                } catch {
+                    print("Error while saving ..")
+                }
+            }
         }
     }
 }
