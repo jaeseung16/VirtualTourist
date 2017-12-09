@@ -243,61 +243,6 @@ class VTAlbumViewController: UIViewController {
             
         })
         
-        /*
-        photos.removeAll()
-        print("\(photos.count)")
-        
-        do {
-            try stack.saveContext()
-        } catch {
-            print("error....")
-        }
-        
-        if let fc = fetchedResultsController {
-            do {
-                try fc.performFetch()
-            } catch let e as NSError {
-                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
-            }
-        }*/
-        
-        
-        /*
-        for photo in photos {
-            if let context = fetchedResultsController?.managedObjectContext {
-                fetchedResultsController?.managedObjectContext.delete(photo)
-                
-                if context.hasChanges {
-                    do {
-                        try context.save()
-                        print("Saved before renewal")
-                        self.doneButton.isEnabled = true
-                        self.newCollectionButton.isEnabled = true
-                    } catch {
-                        print("Error while saving ....")
-                    }
-                }
-            }
-        }
-        
-        print("\(photos.count)")
-        
-        
-        let _ = client.searchPhotos(longitude: annotation.coordinate.longitude, latitude: annotation.coordinate.latitude, completionHandler: { (urlArray, error) in
-            
-            guard (error == nil) else {
-                print("\(String(describing: error))")
-                return
-            }
-            
-            print("array \(urlArray!.count)")
-            for url in urlArray! {
-                let photo = Photo(url: url, pin: self.pins[index], context: fc.managedObjectContext)
-                photos.append(photo)
-            }
-            
-        })*/
-        
     }
 }
 
