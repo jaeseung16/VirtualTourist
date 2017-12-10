@@ -58,43 +58,6 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
         super.viewDidAppear(animated)
         loadImages()
     }
-    
-    func loadImages() {
-        guard let photos = fetchedResultsController?.fetchedObjects as? [Photo] else {
-            print("Cannot fetch [Photo]'s.")
-            return
-        }
-        
-        print("VTAlbum \(photos.count)")
-        
-        if ( photos.count > 0 ) && ( photos[0].imageData == nil ) {
-            downloadImages()
-        } else if (photos.count == 0) {
-            noImagesLabel.isHidden = false
-            doneButton.isEnabled = true
-        } else {
-            setButtons(on: true)
-        }
-    }
-    
-    func setMKMapView() {
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = CLLocationCoordinate2DMake(pin.latitude, pin.longitude)
-        
-        mapView.addAnnotation(annotation)
-        mapView.setCenter(annotation.coordinate, animated: true)
-        
-        print("VTAlbum \(pin.latitude), \(pin.longitude)")
-    }
-    
-    func setCollectionView() {
-        adjustFlowLayoutSize(size: self.view.frame.size)
-    }
-    
-    func setButtons(on: Bool) {
-        doneButton.isEnabled = on
-        newCollectionButton.isEnabled = on
-    }
 
     // MARK: - IBActions
     @IBAction func dismiss(_ sender: UIBarButtonItem) {
@@ -102,63 +65,6 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
         
         // Probably save context
         // Better have a function to save
-    }
-    
-    func downloadImages() {
-        /*if let fc = fetchedResultsController {
-            do {
-                try fc.performFetch()
-            } catch let e as NSError {
-                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
-            }
-        }
-        */
-        setButtons(on: false)
-        
-        guard let fetchedObjects = fetchedResultsController?.fetchedObjects else {
-            return
-        }
-        
-        let count = fetchedObjects.count
-        
-        let photos = fetchedResultsController?.fetchedObjects as! [Photo]
-        
-        print("2 \(photos.count)")
-        
-        for k in 0..<count {
-            // let indexPath = fetchedResultsController?.indexPath(forObject: photo)
-            let indexPath = IndexPath(item: k, section: 0)
-            let object = fetchedResultsController?.object(at: indexPath) as! Photo
-            
-            self.client.downloadPhoto(with: object.imageURL, completionHandler: { (data, error) in
-                guard (error == nil) else {
-                    print("There is an error: \(error!)")
-                    return
-                }
-                
-                guard let data = data else {
-                    print("There is no data")
-                    return
-                }
-                
-                //print("\(self.fetchedResultsController?.indexPath(forObject: photo)!)")
-                
-                DispatchQueue.main.async {
-                    object.setValue(data as NSData, forKey: "imageData")
-                    /*
-                    if (self.fetchedResultsController?.managedObjectContext.hasChanges)! {
-                        do {
-                            try self.fetchedResultsController?.managedObjectContext.save()
-                            print("Saved before renewal")
-                            self.doneButton.isEnabled = true
-                            self.newCollectionButton.isEnabled = true
-                        } catch {
-                            print("Error while saving ....")
-                        }
-                    }*/
-                }
-            })
-        }
     }
     
     @IBAction func renewImages(_ sender: UIBarButtonItem) {
@@ -171,16 +77,10 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
         if let context = fetchedResultsController?.managedObjectContext {
             for photo in photos{
                 context.delete(photo)
-                
-                if context.hasChanges {
-                    do {
-                        try context.save()
-                        print("Saved before renewal")
-                        self.doneButton.isEnabled = true
-                        self.newCollectionButton.isEnabled = true
-                    } catch {
-                        print("Error while saving ....")
-                    }
+                if save(context: context) {
+                    print("Saved after deleting a photo in renewImage(_:)")
+                } else {
+                    print("Error while saving after deleting a photo in renewImage(_:)")
                 }
             }
         }
@@ -256,6 +156,95 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
     }
 }
 
+// MARK: - Methods for VTAblumViewController
+extension VTAlbumViewController {
+    func setMKMapView() {
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = CLLocationCoordinate2DMake(pin.latitude, pin.longitude)
+        
+        mapView.addAnnotation(annotation)
+        mapView.setCenter(annotation.coordinate, animated: true)
+        
+        print("VTAlbum \(pin.latitude), \(pin.longitude)")
+    }
+    
+    func setCollectionView() {
+        adjustFlowLayoutSize(size: self.view.frame.size)
+    }
+    
+    func setButtons(on: Bool) {
+        doneButton.isEnabled = on
+        newCollectionButton.isEnabled = on
+        UIApplication.shared.isNetworkActivityIndicatorVisible = !on
+    }
+
+    func loadImages() {
+        guard let photos = fetchedResultsController?.fetchedObjects as? [Photo] else {
+            print("Cannot fetch [Photo]'s.")
+            return
+        }
+        
+        print("VTAlbum \(photos.count)")
+        
+        if ( photos.count > 0 ) && ( photos[0].imageData == nil ) {
+            downloadImages()
+        } else if (photos.count == 0) {
+            noImagesLabel.isHidden = false
+            doneButton.isEnabled = true
+        } else {
+            setButtons(on: true)
+        }
+    }
+    
+    func downloadImages() {
+        setButtons(on: false)
+        
+        guard let fetchedObjects = fetchedResultsController?.fetchedObjects else {
+            return
+        }
+        
+        let count = fetchedObjects.count
+
+        print("downloadImages: \(count)")
+        
+        for k in 0..<count {
+            let photo = fetchedObjects[k] as! Photo
+            
+            self.client.downloadPhoto(with: photo.imageURL, completionHandler: { (data, error) in
+                guard (error == nil) else {
+                    print("There is an error: \(error!)")
+                    return
+                }
+                
+                guard let data = data else {
+                    print("There is no data")
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    photo.setValue(data as NSData, forKey: "imageData")
+                }
+            })
+        }
+    }
+    
+    func save(context: NSManagedObjectContext) -> Bool {
+        if context.hasChanges {
+            do {
+                try context.save()
+                return true
+                //self.doneButton.isEnabled = true
+                //self.newCollectionButton.isEnabled = true
+            } catch {
+                return false
+            }
+        } else {
+            print("Context has not changed.")
+            return false
+        }
+    }
+}
+
 // MARK: - UICollectionViewDelegate and UICollectionViewData Source
 extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -292,19 +281,15 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let context = fetchedResultsController?.managedObjectContext {
-            let photo = fetchedResultsController?.object(at: indexPath) as! Photo
-            context.delete(photo)
+        if let fc = fetchedResultsController {
+            let photo = fc.object(at: indexPath) as! Photo
+            let context = fc.managedObjectContext
             
-            if context.hasChanges {
-                do {
-                    try context.save()
-                    print("Saved after deletion")
-                    self.doneButton.isEnabled = true
-                    self.newCollectionButton.isEnabled = true
-                } catch {
-                    print("Error while saving ...")
-                }
+            context.delete(photo)
+            if save(context: context) {
+                print("Saved in collectionView(_:didSelectItemAt:)")
+            } else {
+                print("Error while saving in collectionView(_:didSelectItemAt:)")
             }
         }
     }
@@ -375,14 +360,11 @@ extension VTAlbumViewController: NSFetchedResultsControllerDelegate {
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         if let context = fetchedResultsController?.managedObjectContext {
-            if context.hasChanges {
-                do {
-                    try context.save()
-                    print("Saved after content changed")
-                    setButtons(on: true)
-                } catch {
-                    print("Error while saving ..")
-                }
+            if save(context: context) {
+                print("Saved in controllerDidChangeContent(_:)")
+                setButtons(on: true)
+            } else {
+                print("Error while saving in controllerDidChangeContent(_:)")
             }
         }
     }
