@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 import CoreData
 
-class VTAlbumViewController: UIViewController {
+class VTAlbumViewController: UIViewController, MKMapViewDelegate {
 
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var mapView: MKMapView!
@@ -25,7 +25,6 @@ class VTAlbumViewController: UIViewController {
     let space: CGFloat = 3.0
     
     var pin: Pin!
-    var photos = [Photo]()
     var annotation = MKPointAnnotation()
     
     let client = VTFlickrSearch()
@@ -149,17 +148,17 @@ class VTAlbumViewController: UIViewController {
     }
     
     @IBAction func renewImages(_ sender: UIBarButtonItem) {
-        if let fc = fetchedResultsController {
+        /*if let fc = fetchedResultsController {
             do {
                 try fc.performFetch()
             } catch let e as NSError {
                 print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
             }
         }
-        
+        */
         var photos = fetchedResultsController?.fetchedObjects as! [Photo]
-        
-        print("2 \(photos.count)")
+ 
+        print("Before renew \(photos[0].imageURL)")
         
         if let context = fetchedResultsController?.managedObjectContext {
             for photo in photos{
@@ -200,8 +199,8 @@ class VTAlbumViewController: UIViewController {
             
             DispatchQueue.main.async {
                 let fc = self.fetchedResultsController!
-                photos = fc.fetchedObjects as! [Photo]
-                print("queue \(photos.count)")
+                //self.photos = fc.fetchedObjects as! [Photo]
+                print("First url \(urlArray![0])")
                 
                 for url in urlArray! {
                     let photo = Photo(url: url, pin: self.pin, context: fc.managedObjectContext)
@@ -213,7 +212,7 @@ class VTAlbumViewController: UIViewController {
                             try fc.managedObjectContext.save()
                             print("Saved before present")
                         } catch {
-                            print("Error while saving ....")
+                            print("Error while saving during inserting a photo")
                         }
                     }
                 }
@@ -223,7 +222,7 @@ class VTAlbumViewController: UIViewController {
                         try fc.managedObjectContext.save()
                         print("Saved before present")
                     } catch {
-                        print("Error while saving ....")
+                        print("Error while saving after inserting photos")
                     }
                 }
                 
@@ -239,6 +238,7 @@ class VTAlbumViewController: UIViewController {
                 print("queue \(photos.count)")
                 
                 self.downloadImages()
+                print("After renew \(photos[0].imageURL)")
             }
             
         })
@@ -246,12 +246,8 @@ class VTAlbumViewController: UIViewController {
     }
 }
 
-extension VTAlbumViewController: MKMapViewDelegate {
-
-}
-
+// MARK: - UICollectionViewDelegate and UICollectionViewData Source
 extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         //print("section: \(section)")
         //print("photos.count: \(photos.count)")

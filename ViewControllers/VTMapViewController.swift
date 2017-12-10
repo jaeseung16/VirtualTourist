@@ -18,20 +18,7 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
     // Variables
     let client = VTFlickrSearch()
     
-    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?  {
-        didSet {
-            fetchedResultsController?.delegate = self
-            
-            if let fc = fetchedResultsController {
-                do {
-                    try fc.performFetch()
-                    print(".")
-                } catch {
-                    print("Error while performing search: \n\(error)\n\(String(describing: fetchedResultsController))")
-                }
-            }
-        }
-    }
+    var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?
     
     // MARK: - Methods
     override func viewDidLoad() {
@@ -70,6 +57,7 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
             
             do {
                 try context.save()
+                print("A pin saved.")
             } catch {
                 print("Error while saving the added pin.")
             }
@@ -82,11 +70,14 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
         let delegate = UIApplication.shared.delegate as! AppDelegate
         let stack = delegate.stack
         
+        
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Pin")
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "created", ascending: false)]
         
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: stack.context, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController?.delegate = self
+ 
+        performFetch(with: fetchedResultsController)
         
         if let fetchedObjects = fetchedResultsController?.fetchedObjects {
             let count = fetchedObjects.count
@@ -97,6 +88,17 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = coordinate
                 mapView.addAnnotation(annotation)
+            }
+        }
+    }
+    
+    func performFetch(with fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>?) {
+        if let fc = fetchedResultsController {
+            do {
+                try fc.performFetch()
+                print(".")
+            } catch {
+                print("Error while performing search: \n\(error)\n\(String(describing: fc))")
             }
         }
     }
@@ -130,34 +132,32 @@ extension VTMapViewController: MKMapViewDelegate {
             return
         }
         
-        guard let pins = fetchedResultsController?.fetchedObjects as? [Pin] else {
+        // Getting a Pin from the selected annotation
+        performFetch(with: fetchedResultsController)
+        
+        guard let fc = fetchedResultsController, let pins = fc.fetchedObjects as? [Pin] else {
             print("Cannot convert fetchedObjects into [Pin]")
             return
         }
-        
-        let index = pins.index(where: { ($0.longitude == annotation.coordinate.longitude) && ($0.latitude == annotation.coordinate.latitude) } )!
 
-        let pinForAlbumView = pins[index]
-        
-        print("VTMap \(pinForAlbumView.latitude), \(pinForAlbumView.longitude)")
-        
+        let index = pins.index(where: { ($0.longitude == annotation.coordinate.longitude) && ($0.latitude == annotation.coordinate.latitude) } )!
+        let pinForAlbumVC = pins[index]
+
+        // Fetching [Photo] attached to the Pin
         let fr = NSFetchRequest<NSFetchRequestResult>(entityName: "Photo")
         fr.sortDescriptors = [NSSortDescriptor(key: "created", ascending: true)]
 
-        let pred = NSPredicate(format: "pin = %@", argumentArray: [pinForAlbumView])
+        let pred = NSPredicate(format: "pin = %@", argumentArray: [pinForAlbumVC])
         fr.predicate = pred
         
-        let fc = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: fetchedResultsController!.managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
+        let fcForAlbumVC = NSFetchedResultsController(fetchRequest: fr, managedObjectContext: fc.managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
         
-        do {
-            try fc.performFetch()
-        } catch let e as NSError {
-            print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
-        }
+        performFetch(with: fcForAlbumVC)
         
-        let photos = fc.fetchedObjects as! [Photo]
-        albumViewController.pin = pinForAlbumView
-
+        // Preparing AlbumViewController with Pin and [Photo]
+        let photos = fcForAlbumVC.fetchedObjects as! [Photo]
+        albumViewController.pin = pinForAlbumVC
+    
         if photos.count == 0 {
             let _ = client.searchPhotos(longitude: annotation.coordinate.longitude, latitude: annotation.coordinate.latitude, completionHandler: { (urlArray, error) in
                 
@@ -165,17 +165,15 @@ extension VTMapViewController: MKMapViewDelegate {
                     print("\(String(describing: error))")
                     return
                 }
-                
-                print("array \(urlArray!.count)")
-            
+
                 DispatchQueue.main.async {
                     for url in urlArray! {
-                        let photo = Photo(url: url, pin: pinForAlbumView, context: fc.managedObjectContext)
-                        fc.managedObjectContext.insert(photo)
+                        let photo = Photo(url: url, pin: pinForAlbumVC, context: fcForAlbumVC.managedObjectContext)
+                        fcForAlbumVC.managedObjectContext.insert(photo)
                         
-                        if fc.managedObjectContext.hasChanges {
+                        if fcForAlbumVC.managedObjectContext.hasChanges {
                             do {
-                                try fc.managedObjectContext.save()
+                                try fcForAlbumVC.managedObjectContext.save()
                                 print("Saved before present")
                             } catch {
                                 print("Error while saving ....")
@@ -183,15 +181,18 @@ extension VTMapViewController: MKMapViewDelegate {
                         }
                     }
                     
-                    albumViewController.fetchedResultsController = fc
-                    //albumViewController.photos = photos
-                    self.present(albumViewController, animated: true)
+                    albumViewController.fetchedResultsController = fcForAlbumVC
+                    self.present(albumViewController, animated: true) {
+                        mapView.deselectAnnotation(view.annotation, animated: false)
+                    }
                 }
             })
         } else {
-            albumViewController.fetchedResultsController = fc
-            //albumViewController.photos = photos
-            self.present(albumViewController, animated: true)
+            albumViewController.fetchedResultsController = fcForAlbumVC
+            self.present(albumViewController, animated: true) {
+                mapView.deselectAnnotation(view.annotation, animated: false)
+            }
         }
     }
+
 }

@@ -12,8 +12,6 @@ class VTFlickrSearch {
     // MARK: Properties
     var session = URLSession.shared
     
-    var imageURLArray = [String]()
-    
     // MARK: - Methods
     func downloadPhoto(with imageURL: String, completionHandler: @escaping (_ data: Data?, _ error: String?) -> Void ) {
         guard let url = URL(string: imageURL) else {
@@ -49,7 +47,7 @@ class VTFlickrSearch {
     }
     
     func searchPhotos(longitude: Double, latitude: Double, completionHandler: @escaping (_ urlArray: [String]?, _ error: String?) -> Void) {
-        let url = searchURL(longitude: longitude, latitude: latitude, page: 1)
+        var url = searchURL(longitude: longitude, latitude: latitude, page: 1)
         
         let _ = dataTask(with: url) { (data, error) in
             guard (error == nil) else {
@@ -80,7 +78,8 @@ class VTFlickrSearch {
             }
             
             let page = Int(arc4random_uniform(UInt32(pages)) + 1)
-            let url = self.searchURL(longitude: longitude, latitude: latitude, page: page)
+            url = self.searchURL(longitude: longitude, latitude: latitude, page: page)
+            print("page = \(page)")
             
             let _ = self.dataTask(with: url) { (data, error) in
                 guard (error == nil) else {
@@ -124,16 +123,17 @@ class VTFlickrSearch {
                     return
                 }
                 
+                var imageURLArray = [String]()
+                
                 for photo in photosArray {
                     if let url = photo["url_m"] as? String {
-                        self.imageURLArray.append(url)
+                        imageURLArray.append(url)
                     } else {
                         print("No imageURL: \(photo)")
                     }
                 }
                 
-                completionHandler(self.imageURLArray, nil)
-                self.imageURLArray = []
+                completionHandler(imageURLArray, nil)
             }
             
         }
