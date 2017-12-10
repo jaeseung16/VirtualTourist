@@ -109,17 +109,23 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="nKV-xg-hgH">
-                                                    <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
                                                 </imageView>
+                                                <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="gyH-3Z-PNZ">
+                                                    <rect key="frame" x="15" y="15" width="20" height="20"/>
+                                                </activityIndicatorView>
                                             </subviews>
                                         </view>
                                         <constraints>
                                             <constraint firstItem="nKV-xg-hgH" firstAttribute="top" secondItem="yxa-vb-egO" secondAttribute="top" id="36x-gT-DIf"/>
+                                            <constraint firstItem="gyH-3Z-PNZ" firstAttribute="centerY" secondItem="yxa-vb-egO" secondAttribute="centerY" id="LNf-m0-6Po"/>
                                             <constraint firstItem="nKV-xg-hgH" firstAttribute="leading" secondItem="yxa-vb-egO" secondAttribute="leading" id="Rff-dB-xF2"/>
                                             <constraint firstAttribute="trailing" secondItem="nKV-xg-hgH" secondAttribute="trailing" id="Rg4-Ph-vJe"/>
                                             <constraint firstAttribute="bottom" secondItem="nKV-xg-hgH" secondAttribute="bottom" id="UiJ-UA-R0t"/>
+                                            <constraint firstItem="gyH-3Z-PNZ" firstAttribute="centerX" secondItem="yxa-vb-egO" secondAttribute="centerX" id="g5e-8G-enf"/>
                                         </constraints>
                                         <connections>
+                                            <outlet property="activityIndicator" destination="gyH-3Z-PNZ" id="YKJ-rB-AqS"/>
                                             <outlet property="imageView" destination="nKV-xg-hgH" id="qUx-RU-6jB"/>
                                         </connections>
                                     </collectionViewCell>

@@ -44,7 +44,7 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-    // MARK: - Methods
+    // MARK: - Methods for UIViewController
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -56,7 +56,6 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
         loadImages()
     }
     
@@ -97,6 +96,7 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
         newCollectionButton.isEnabled = on
     }
 
+    // MARK: - IBActions
     @IBAction func dismiss(_ sender: UIBarButtonItem) {
         self.dismiss(animated: true, completion: nil)
         
@@ -162,16 +162,6 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
     }
     
     @IBAction func renewImages(_ sender: UIBarButtonItem) {
-        
-        /*if let fc = fetchedResultsController {
-            do {
-                try fc.performFetch()
-            } catch let e as NSError {
-                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
-            }
-        }
-        */
-        
         setButtons(on: false)
         
         var photos = fetchedResultsController?.fetchedObjects as! [Photo]
@@ -205,6 +195,8 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
         
         photos = fetchedResultsController?.fetchedObjects as! [Photo]
         print("2 count \(photos.count)")
+        
+        setButtons(on: false)
         
         let _ = client.searchPhotos(longitude: pin.longitude, latitude: pin.latitude, completionHandler: { (urlArray, error) in
             
@@ -279,12 +271,14 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
         
         cell.imageView.image = nil
         cell.imageView.backgroundColor = .black
+        cell.activityIndicator.startAnimating()
         
         if let fc = fetchedResultsController {
             let photo = fc.object(at: indexPath) as! Photo
             
             if let imageData = photo.imageData {
                 cell.imageView.image = UIImage(data: imageData as Data)
+                cell.activityIndicator.stopAnimating()
             }
         }
 
@@ -317,7 +311,6 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        
         // This method is called when the orientaition of a device changes even before the view controller is loaded.
         // So checking whether flowLayout exists before updating the collection view
         if self.flowLayout != nil {
@@ -347,9 +340,10 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
     }
 }
 
+// MARK: - NSFetchedResultsControllerDelegate
 extension VTAlbumViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        setButtons(on: false)
+        // setButtons(on: false)
     }
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
