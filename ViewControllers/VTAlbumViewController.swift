@@ -61,43 +61,21 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
 
     // MARK: - IBActions
     @IBAction func dismiss(_ sender: UIBarButtonItem) {
-        self.dismiss(animated: true, completion: nil)
+        if let context = fetchedResultsController?.managedObjectContext {
+            if save(context: context) {
+                print("Saved before dismissing VTAlbumViewController")
+            } else {
+                print("Error while saving before dismissing VTAlbumViewController")
+            }
+        }
         
-        // Probably save context
-        // Better have a function to save
+        self.dismiss(animated: true, completion: nil)
     }
     
     @IBAction func renewImages(_ sender: UIBarButtonItem) {
         setButtons(on: false)
         
-        var photos = fetchedResultsController?.fetchedObjects as! [Photo]
- 
-        print("Before renew \(photos[0].imageURL)")
-        
-        if let context = fetchedResultsController?.managedObjectContext {
-            for photo in photos{
-                context.delete(photo)
-                if save(context: context) {
-                    print("Saved after deleting a photo in renewImage(_:)")
-                } else {
-                    print("Error while saving after deleting a photo in renewImage(_:)")
-                }
-            }
-        }
-        
-        if let fc = fetchedResultsController {
-            do {
-                try fc.performFetch()
-            } catch let e as NSError {
-                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
-            }
-        }
-        
-        photos = fetchedResultsController?.fetchedObjects as! [Photo]
-        print("2 count \(photos.count)")
-        
-        setButtons(on: false)
-        
+        // Download a new set of urls
         let _ = client.searchPhotos(longitude: pin.longitude, latitude: pin.latitude, completionHandler: { (urlArray, error) in
             
             guard (error == nil) else {
@@ -105,54 +83,47 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
                 return
             }
             
-            print("array \(urlArray!.count)")
+            guard let urlArray = urlArray else {
+                print("There is no array of urls")
+                return
+            }
+            
+            print("array \(urlArray.count)")
             
             DispatchQueue.main.async {
-                let fc = self.fetchedResultsController!
-                //self.photos = fc.fetchedObjects as! [Photo]
-                print("First url \(urlArray![0])")
-                
-                for url in urlArray! {
-                    let photo = Photo(url: url, pin: self.pin, context: fc.managedObjectContext)
+                if let fc = self.fetchedResultsController {
+                    let context = fc.managedObjectContext
                     
-                    // fc.managedObjectContext.insert(photo)
+                    if let fetchedObjects = fc.fetchedObjects {
+                        let count = fetchedObjects.count
+                        
+                        for k in 0..<count {
+                            let photo = fetchedObjects[k] as! Photo
+                            context.delete(photo)
+                            
+                            if self.save(context: context) {
+                                print("Saved after deleting a photo in renewImage(_:)")
+                            } else {
+                                print("Error while saving after deleting a photo in renewImage(_:)")
+                            }
+                        }
+                    }
                     
-                    if fc.managedObjectContext.hasChanges {
-                        do {
-                            try fc.managedObjectContext.save()
-                            print("Saved before present")
-                        } catch {
-                            print("Error while saving during inserting a photo")
+                    for url in urlArray {
+                        let _ = Photo(url: url, pin: self.pin, context: context)
+                        
+                        if self.save(context: context) {
+                            print("Saved after getting an url in renewImage(_:)")
+                        } else {
+                            print("Error while saving after getting an url in renewImage(_:)")
                         }
                     }
                 }
                 
-                if fc.managedObjectContext.hasChanges {
-                    do {
-                        try fc.managedObjectContext.save()
-                        print("Saved before present..")
-                    } catch {
-                        print("Error while saving after inserting photos")
-                    }
-                }
-                
-                if let fc = self.fetchedResultsController {
-                    do {
-                        try fc.performFetch()
-                    } catch let e as NSError {
-                        print("Error while trying to perform a search: \n\(e)\n\(self.fetchedResultsController)")
-                    }
-                }
-                
-                photos = self.fetchedResultsController?.fetchedObjects as! [Photo]
-                print("queue \(photos.count)")
-                
+                // Download new photos
                 self.downloadImages()
-                print("After renew \(photos[0].imageURL)")
             }
-            
         })
-        
     }
 }
 
@@ -233,8 +204,6 @@ extension VTAlbumViewController {
             do {
                 try context.save()
                 return true
-                //self.doneButton.isEnabled = true
-                //self.newCollectionButton.isEnabled = true
             } catch {
                 return false
             }
@@ -272,12 +241,6 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
         }
 
         return cell
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if let cell = cell as? VTPhotoCollectionViewCell {
-            cell.imageView.backgroundColor = .black
-        }
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -328,7 +291,7 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
 // MARK: - NSFetchedResultsControllerDelegate
 extension VTAlbumViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        // setButtons(on: false)
+
     }
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
