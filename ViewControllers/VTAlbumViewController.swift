@@ -160,8 +160,9 @@ extension VTAlbumViewController {
         if ( photos.count > 0 ) && ( photos[0].imageData == nil ) {
             downloadImages()
         } else if (photos.count == 0) {
+            setButtons(on: true)
+            newCollectionButton.isEnabled = false
             noImagesLabel.isHidden = false
-            doneButton.isEnabled = true
         } else {
             setButtons(on: true)
         }

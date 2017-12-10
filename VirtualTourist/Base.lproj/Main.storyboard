@@ -20,20 +20,29 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="pzX-NO-3Pz">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
                                 <gestureRecognizers/>
                                 <connections>
                                     <outlet property="delegate" destination="BYZ-38-t0r" id="Wqd-OD-sTu"/>
                                     <outletCollection property="gestureRecognizers" destination="wYO-Fe-GNp" appends="YES" id="Brp-yW-uJC"/>
                                 </connections>
                             </mapView>
+                            <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZzX-mT-Mqy">
+                                <rect key="frame" x="0.0" y="20" width="375" height="44"/>
+                                <items>
+                                    <navigationItem title="Virtual Tourist" id="1wJ-NQ-uA8"/>
+                                </items>
+                            </navigationBar>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="pzX-NO-3Pz" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="9rV-cw-n6R"/>
-                            <constraint firstItem="pzX-NO-3Pz" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="A98-AL-gc1"/>
-                            <constraint firstItem="pzX-NO-3Pz" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="ESi-0p-TuE"/>
-                            <constraint firstAttribute="trailing" secondItem="pzX-NO-3Pz" secondAttribute="trailing" id="jlz-ml-5km"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="top" secondItem="ZzX-mT-Mqy" secondAttribute="top" id="9JW-xh-xBG"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="pzX-NO-3Pz" secondAttribute="trailing" id="agC-XJ-R8k"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="pzX-NO-3Pz" secondAttribute="bottom" id="dg4-2k-GCK"/>
+                            <constraint firstItem="ZzX-mT-Mqy" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="ifl-d1-aVf"/>
+                            <constraint firstItem="pzX-NO-3Pz" firstAttribute="top" secondItem="ZzX-mT-Mqy" secondAttribute="bottom" id="nIl-d7-4XU"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="ZzX-mT-Mqy" secondAttribute="trailing" id="oNI-Jo-zFQ"/>
+                            <constraint firstItem="pzX-NO-3Pz" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="rjv-eM-RJE"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
