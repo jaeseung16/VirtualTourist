@@ -36,8 +36,8 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
             if let fc = fetchedResultsController {
                 do {
                     try fc.performFetch()
-                } catch let e as NSError {
-                    print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+                } catch {
+                    print("Error while trying to perform a search: \n\(error)\n\(String(describing: fetchedResultsController))")
                 }
             }
             print(".")
@@ -80,41 +80,36 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
         
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
     @IBAction func dismiss(_ sender: UIBarButtonItem) {
         self.dismiss(animated: true, completion: nil)
     }
     
     func downloadImages() {
-        if let fc = fetchedResultsController {
+        /*if let fc = fetchedResultsController {
             do {
                 try fc.performFetch()
             } catch let e as NSError {
                 print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
             }
         }
+        */
+        doneButton.isEnabled = false
+        newCollectionButton.isEnabled = false
+        
+        guard let fetchedObjects = fetchedResultsController?.fetchedObjects else {
+            return
+        }
+        
+        let count = fetchedObjects.count
         
         let photos = fetchedResultsController?.fetchedObjects as! [Photo]
         
         print("2 \(photos.count)")
         
-        for photo in photos {
-            let indexPath = fetchedResultsController?.indexPath(forObject: photo)
-            let object = fetchedResultsController?.object(at: indexPath!) as! Photo
+        for k in 0..<count {
+            // let indexPath = fetchedResultsController?.indexPath(forObject: photo)
+            let indexPath = IndexPath(item: k, section: 0)
+            let object = fetchedResultsController?.object(at: indexPath) as! Photo
             
             self.client.downloadPhoto(with: object.imageURL, completionHandler: { (data, error) in
                 guard (error == nil) else {
@@ -148,6 +143,7 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
     }
     
     @IBAction func renewImages(_ sender: UIBarButtonItem) {
+        
         /*if let fc = fetchedResultsController {
             do {
                 try fc.performFetch()
@@ -186,7 +182,7 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
         }
         
         photos = fetchedResultsController?.fetchedObjects as! [Photo]
-        print("\(photos.count)")
+        print("2 count \(photos.count)")
         
         let _ = client.searchPhotos(longitude: annotation.coordinate.longitude, latitude: annotation.coordinate.latitude, completionHandler: { (urlArray, error) in
             
@@ -205,7 +201,7 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
                 for url in urlArray! {
                     let photo = Photo(url: url, pin: self.pin, context: fc.managedObjectContext)
                     
-                    fc.managedObjectContext.insert(photo)
+                    // fc.managedObjectContext.insert(photo)
                     
                     if fc.managedObjectContext.hasChanges {
                         do {
@@ -220,7 +216,7 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
                 if fc.managedObjectContext.hasChanges {
                     do {
                         try fc.managedObjectContext.save()
-                        print("Saved before present")
+                        print("Saved before present..")
                     } catch {
                         print("Error while saving after inserting photos")
                     }

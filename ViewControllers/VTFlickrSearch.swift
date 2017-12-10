@@ -77,9 +77,12 @@ class VTFlickrSearch {
                 return
             }
             
-            let page = Int(arc4random_uniform(UInt32(pages)) + 1)
+            // Flickr will return at most the first 4,000 results for any given search query.
+            // In order to avoid getting the same set of photos, page × PerPage should be smaller than 4,000.
+            let pageToRequest = pages < VTFlickrSearch.maxPage ? pages : VTFlickrSearch.maxPage
+            let page = Int(arc4random_uniform(UInt32(pageToRequest)))
+            
             url = self.searchURL(longitude: longitude, latitude: latitude, page: page)
-            print("page = \(page)")
             
             let _ = self.dataTask(with: url) { (data, error) in
                 guard (error == nil) else {
@@ -116,7 +119,12 @@ class VTFlickrSearch {
                     return
                 }
                 
-                print("page = \(page), pages = \(pages), perpage = \(perpage)")
+                guard let total = photosDictionary["total"] as? String else {
+                    print("Cannot find total in \(photosDictionary["total"])")
+                    return
+                }
+                
+                print("page = \(page), pages = \(pages), perpage = \(perpage), total = \(total)")
                 
                 guard let photosArray = photosDictionary["photo"] as? [ [String: AnyObject] ] else {
                     completionHandler(nil, "Cannot find the photo key.")
@@ -134,6 +142,8 @@ class VTFlickrSearch {
                 }
                 
                 completionHandler(imageURLArray, nil)
+                print("imageURLArray.count \(imageURLArray.count)")
+                imageURLArray = [] // Without this, getting the same set of image urls. Not really.
             }
             
         }

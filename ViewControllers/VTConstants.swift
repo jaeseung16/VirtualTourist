@@ -40,4 +40,8 @@ extension VTFlickrSearch {
         static let DisableJSONCallBack = "1"
     }
     
+    // Flickr will return at most the first 4,000 results for any given search query. See
+    // https://www.flickr.com/services/api/flickr.photos.search.htm
+    static let maxPage = 40
+    
 }

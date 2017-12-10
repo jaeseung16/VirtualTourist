@@ -53,8 +53,7 @@ class VTMapViewController: UIViewController, NSFetchedResultsControllerDelegate 
             }
             
             let pin = Pin(longitude: coordinate.longitude, latitude: coordinate.latitude, context: context)
-            context.insert(pin)
-            
+
             do {
                 try context.save()
                 print("A pin saved.")
@@ -169,7 +168,7 @@ extension VTMapViewController: MKMapViewDelegate {
                 DispatchQueue.main.async {
                     for url in urlArray! {
                         let photo = Photo(url: url, pin: pinForAlbumVC, context: fcForAlbumVC.managedObjectContext)
-                        fcForAlbumVC.managedObjectContext.insert(photo)
+                        // fcForAlbumVC.managedObjectContext.insert(photo)
                         
                         if fcForAlbumVC.managedObjectContext.hasChanges {
                             do {
