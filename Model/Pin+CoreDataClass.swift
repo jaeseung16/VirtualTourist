@@ -10,9 +10,7 @@
 import Foundation
 import CoreData
 
-
 public class Pin: NSManagedObject {
-
     convenience init(longitude: Double, latitude: Double, context: NSManagedObjectContext) {
         if let entity = NSEntityDescription.entity(forEntityName: "Pin", in: context) {
             self.init(entity: entity, insertInto: context)

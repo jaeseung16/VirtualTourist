@@ -10,7 +10,6 @@
 		0B72C2F11FC387CB00720555 /* VTPhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B72C2F01FC387CB00720555 /* VTPhotoCollectionViewCell.swift */; };
 		0B7A88701FC2157700C12871 /* VTAlbumViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B7A886F1FC2157700C12871 /* VTAlbumViewController.swift */; };
 		0B92D2FB1FBE24C20028ED9E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B92D2FA1FBE24C20028ED9E /* AppDelegate.swift */; };
-		0B92D2FD1FBE24C20028ED9E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B92D2FC1FBE24C20028ED9E /* ViewController.swift */; };
 		0B92D3001FBE24C20028ED9E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0B92D2FE1FBE24C20028ED9E /* Main.storyboard */; };
 		0B92D3021FBE24C20028ED9E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0B92D3011FBE24C20028ED9E /* Assets.xcassets */; };
 		0B92D3051FBE24C20028ED9E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0B92D3031FBE24C20028ED9E /* LaunchScreen.storyboard */; };
@@ -49,7 +48,6 @@
 		0B7A886F1FC2157700C12871 /* VTAlbumViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VTAlbumViewController.swift; sourceTree = "<group>"; };
 		0B92D2F71FBE24C20028ED9E /* VirtualTourist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VirtualTourist.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0B92D2FA1FBE24C20028ED9E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		0B92D2FC1FBE24C20028ED9E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		0B92D2FF1FBE24C20028ED9E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		0B92D3011FBE24C20028ED9E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0B92D3041FBE24C20028ED9E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -123,7 +121,6 @@
 			isa = PBXGroup;
 			children = (
 				0B92D2FA1FBE24C20028ED9E /* AppDelegate.swift */,
-				0B92D2FC1FBE24C20028ED9E /* ViewController.swift */,
 				0B92D2FE1FBE24C20028ED9E /* Main.storyboard */,
 				0B92D3011FBE24C20028ED9E /* Assets.xcassets */,
 				0B92D3031FBE24C20028ED9E /* LaunchScreen.storyboard */,
@@ -324,7 +321,6 @@
 				0B92D3291FBE26890028ED9E /* VTMapViewController.swift in Sources */,
 				90E68A151FC8A2E700B3E2AF /* CoreDataStack.swift in Sources */,
 				90891ACD1FCE2A660031223F /* Photo+CoreDataClass.swift in Sources */,
-				0B92D2FD1FBE24C20028ED9E /* ViewController.swift in Sources */,
 				0B92D2FB1FBE24C20028ED9E /* AppDelegate.swift in Sources */,
 				90891ACF1FCE2A660031223F /* Pin+CoreDataClass.swift in Sources */,
 				9067DAF01FCCD78A00E84A41 /* VTFlickrSearch.swift in Sources */,

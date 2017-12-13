@@ -7,12 +7,8 @@
 
 import CoreData
 
-// MARK: - CoreDataStack
-
 struct CoreDataStack {
-    
     // MARK: Properties
-    
     private let model: NSManagedObjectModel
     internal let coordinator: NSPersistentStoreCoordinator
     private let modelURL: URL
@@ -20,9 +16,7 @@ struct CoreDataStack {
     let context: NSManagedObjectContext
     
     // MARK: Initializers
-    
     init?(modelName: String) {
-        
         // Assumes the model is in the main bundle
         guard let modelURL = Bundle.main.url(forResource: modelName, withExtension: "momd") else {
             print("Unable to find \(modelName)in the main bundle")
@@ -51,7 +45,6 @@ struct CoreDataStack {
             print("Unable to reach the documents folder")
             return nil
         }
-        
         self.dbURL = docUrl.appendingPathComponent("model.sqlite")
         
         // Options for migration
@@ -65,16 +58,13 @@ struct CoreDataStack {
     }
     
     // MARK: Utils
-    
     func addStoreCoordinator(_ storeType: String, configuration: String?, storeURL: URL, options : [NSObject:AnyObject]?) throws {
         try coordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: dbURL, options: nil)
     }
 }
 
 // MARK: - CoreDataStack (Removing Data)
-
 internal extension CoreDataStack  {
-    
     func dropAllData() throws {
         // delete all the objects in the db. This won't delete the files, it will
         // just leave empty tables.
@@ -84,9 +74,7 @@ internal extension CoreDataStack  {
 }
 
 // MARK: - CoreDataStack (Save Data)
-
 extension CoreDataStack {
-    
     func saveContext() throws {
         if context.hasChanges {
             try context.save()
@@ -94,7 +82,6 @@ extension CoreDataStack {
     }
     
     func autoSave(_ delayInSeconds : Int) {
-        
         if delayInSeconds > 0 {
             do {
                 try saveContext()

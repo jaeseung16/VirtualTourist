@@ -14,22 +14,17 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
     // MARK: Properties
     // Outlets
     @IBOutlet weak var mapView: MKMapView!
-    
     @IBOutlet weak var photosCollectionView: UICollectionView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
-    
     @IBOutlet weak var doneButton: UIBarButtonItem!
     @IBOutlet weak var newCollectionButton: UIBarButtonItem!
-   
     @IBOutlet weak var noImagesLabel: UILabel!
     
-    // Constants
+    // Client to search and download photos from Flickr
     let client = VTFlickrSearch()
-    let space: CGFloat = 3.0
     
     // Variables
     var pin: Pin!
-    
     var fetchedResultsController: NSFetchedResultsController<NSFetchRequestResult>? {
         didSet {
             fetchedResultsController?.delegate = self
@@ -48,34 +43,27 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        setMKMapView()
-        setCollectionView()
+        initializeMapView()
+        initiailizeCollectionView()
         setButtons(on: false)
         noImagesLabel.isHidden = true
+        loadImages()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        loadImages()
+        //loadImages()
     }
 
     // MARK: - IBActions
     @IBAction func dismiss(_ sender: UIBarButtonItem) {
-        if let context = fetchedResultsController?.managedObjectContext {
-            if save(context: context) {
-                print("Saved before dismissing VTAlbumViewController")
-            } else {
-                print("Error while saving before dismissing VTAlbumViewController")
-            }
-        }
-        
         self.dismiss(animated: true, completion: nil)
     }
     
     @IBAction func renewImages(_ sender: UIBarButtonItem) {
         setButtons(on: false)
         
-        // Download a new set of urls
+        // Download new urls
         let _ = client.searchPhotos(longitude: pin.longitude, latitude: pin.latitude, completionHandler: { (urlArray, error) in
             
             guard (error == nil) else {
@@ -88,12 +76,11 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
                 return
             }
             
-            print("array \(urlArray.count)")
-            
             DispatchQueue.main.async {
                 if let fc = self.fetchedResultsController {
                     let context = fc.managedObjectContext
                     
+                    // Delete existing photos
                     if let fetchedObjects = fc.fetchedObjects {
                         let count = fetchedObjects.count
                         
@@ -109,13 +96,14 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
                         }
                     }
                     
+                    // Add photos from new urls
                     for url in urlArray {
                         let _ = Photo(url: url, pin: self.pin, context: context)
                         
                         if self.save(context: context) {
-                            print("Saved after getting an url in renewImage(_:)")
+                            print("Saved after initializing a Photo in renewImage(_:)")
                         } else {
-                            print("Error while saving after getting an url in renewImage(_:)")
+                            print("Error while saving after initializing a Photo renewImage(_:)")
                         }
                     }
                 }
@@ -129,17 +117,15 @@ class VTAlbumViewController: UIViewController, MKMapViewDelegate {
 
 // MARK: - Methods for VTAblumViewController
 extension VTAlbumViewController {
-    func setMKMapView() {
+    func initializeMapView() {
         let annotation = MKPointAnnotation()
         annotation.coordinate = CLLocationCoordinate2DMake(pin.latitude, pin.longitude)
         
         mapView.addAnnotation(annotation)
         mapView.setCenter(annotation.coordinate, animated: true)
-        
-        print("VTAlbum \(pin.latitude), \(pin.longitude)")
     }
     
-    func setCollectionView() {
+    func initiailizeCollectionView() {
         adjustFlowLayoutSize(size: self.view.frame.size)
     }
     
@@ -154,16 +140,17 @@ extension VTAlbumViewController {
             print("Cannot fetch [Photo]'s.")
             return
         }
-        
-        print("VTAlbum \(photos.count)")
-        
+
         if ( photos.count > 0 ) && ( photos[0].imageData == nil ) {
+            // There are photos but no images have not been downloaded.
             downloadImages()
         } else if (photos.count == 0) {
+            // There are no photos.
             setButtons(on: true)
             newCollectionButton.isEnabled = false
             noImagesLabel.isHidden = false
         } else {
+            // There are already images in photos.
             setButtons(on: true)
         }
     }
@@ -176,13 +163,11 @@ extension VTAlbumViewController {
         }
         
         let count = fetchedObjects.count
-
-        print("downloadImages: \(count)")
         
         for k in 0..<count {
             let photo = fetchedObjects[k] as! Photo
             
-            self.client.downloadPhoto(with: photo.imageURL, completionHandler: { (data, error) in
+            self.client.downloadPhoto(with: photo.imageURL) { (data, error) in
                 guard (error == nil) else {
                     print("There is an error: \(error!)")
                     return
@@ -196,7 +181,7 @@ extension VTAlbumViewController {
                 DispatchQueue.main.async {
                     photo.setValue(data as NSData, forKey: "imageData")
                 }
-            })
+            }
         }
     }
     
@@ -228,10 +213,12 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "photoImage", for: indexPath) as! VTPhotoCollectionViewCell
         
+        // Set the properties of 'cell' to default values
         cell.imageView.image = nil
         cell.imageView.backgroundColor = .black
         cell.activityIndicator.startAnimating()
         
+        // If there is an image in 'fetchedResultsController', present it.
         if let fc = fetchedResultsController {
             let photo = fc.object(at: indexPath) as! Photo
             
@@ -250,6 +237,7 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
             let context = fc.managedObjectContext
             
             context.delete(photo)
+            
             if save(context: context) {
                 print("Saved in collectionView(_:didSelectItemAt:)")
             } else {
@@ -258,6 +246,7 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
         }
     }
     
+    // MARK: Methods for FlowLayout
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         // This method is called when the orientaition of a device changes even before the view controller is loaded.
@@ -269,10 +258,12 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
     }
     
     func adjustFlowLayoutSize(size: CGSize) {
-        let dimension = cellSize(size: size, space: self.space)
+        let space: CGFloat = 3.0
+        let dimension = cellSize(size: size, space: space)
         
-        self.flowLayout.minimumInteritemSpacing = self.space
-        self.flowLayout.minimumLineSpacing = self.space
+        self.flowLayout.minimumInteritemSpacing = space
+        self.flowLayout.minimumLineSpacing = 2 * space
+        self.flowLayout.sectionInset = UIEdgeInsets(top: space, left: space, bottom: space, right: space)
         self.flowLayout.itemSize = CGSize(width: dimension, height: dimension)
     }
     
@@ -285,16 +276,12 @@ extension VTAlbumViewController: UICollectionViewDelegate, UICollectionViewDataS
         
         let numberInRow = height > width ? CGFloat(numberInRowPortrait) : CGFloat(numberInRowLandscape)
         
-        return ( width - (numberInRow - 1) * space ) / numberInRow
+        return ( width - 2 * numberInRow * space ) / numberInRow
     }
 }
 
 // MARK: - NSFetchedResultsControllerDelegate
 extension VTAlbumViewController: NSFetchedResultsControllerDelegate {
-    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-
-    }
-    
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
         let set = IndexSet(integer: sectionIndex)
         

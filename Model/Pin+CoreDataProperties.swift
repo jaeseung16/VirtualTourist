@@ -10,9 +10,7 @@
 import Foundation
 import CoreData
 
-
 extension Pin {
-
     @nonobjc public class func fetchRequest() -> NSFetchRequest<Pin> {
         return NSFetchRequest<Pin>(entityName: "Pin")
     }
@@ -21,12 +19,10 @@ extension Pin {
     @NSManaged public var longitude: Double
     @NSManaged public var created: Date
     @NSManaged public var photos: NSSet?
-
 }
 
 // MARK: Generated accessors for photos
 extension Pin {
-
     @objc(addPhotosObject:)
     @NSManaged public func addToPhotos(_ value: Photo)
 
@@ -38,5 +34,4 @@ extension Pin {
 
     @objc(removePhotos:)
     @NSManaged public func removeFromPhotos(_ values: NSSet)
-
 }
