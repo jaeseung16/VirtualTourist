@@ -6,7 +6,7 @@ Part of the [iOS Nanodegree](https://github.com/jaeseung16/NMRCalculator) Progra
 
 ## Description
 
-This app allows users specify locations around the world and create virtual photo albums for each location.
+This app allows users to specify locations around the world and to create virtual photo albums for each location.
 The locations and photo albums are stored.
 
 ### Map View
